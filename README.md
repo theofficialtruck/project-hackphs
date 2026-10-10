@@ -41,16 +41,8 @@ final UI.
 ## Project structure
 
 ```text
-docs/          Plan, architecture, science model and sources, UI handoff
 src/core/      Game engine: simulation, state, mechanics (no browser APIs)
 src/dev-ui/    Temporary development UI (served by dev.html)
 dev.html       Development UI page
 index.html     Final UI page (placeholder until the UI developer replaces it)
 ```
-
-## Documentation
-
-- [Development plan](docs/development-plan.md)
-- [Architecture](docs/architecture.md)
-- [Science model and sources](docs/science-model.md)
-- [UI handoff](docs/ui-handoff.md)

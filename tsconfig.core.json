@@ -1,7 +1,7 @@
 {
   // Extra check for the game engine only. It removes the browser (DOM) and Vite
   // type definitions, so any engine code that touches `document`, `window`,
-  // `localStorage`, etc. fails type-checking. This keeps the engine usable from
+  // `localStorage`, etc. fails type checking. This keeps the engine usable from
   // any UI and from Node (tests, scripts).
   "extends": "./tsconfig.json",
   "compilerOptions": {
