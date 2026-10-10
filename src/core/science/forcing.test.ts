@@ -30,7 +30,7 @@ describe('effective radiative forcing', () => {
     expect(f.total).toBeCloseTo(f.co2 + f.ch4 + f.n2o, 10);
   });
 
-  it('gives the AR6 assessed forcing (3.93 W/m²) for doubled CO2', () => {
+  it('gives the AR6 assessed forcing (3.93 W/m^2) for doubled CO2', () => {
     const f = effectiveRadiativeForcing(withCo2(2 * PREINDUSTRIAL_CONCENTRATIONS.co2));
     expect(f.co2).toBeCloseTo(SCIENCE.co2DoublingForcing.value, 1);
   });

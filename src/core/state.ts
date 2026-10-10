@@ -2,14 +2,13 @@
  * The game state: everything needed to continue a game, stored as plain data (no classes,
  * no functions) so it can be saved as JSON and compared in tests.
  */
+import { initialFactorStates, type FactorStates } from './factors';
 import {
-  NO_EMISSIONS,
   PREINDUSTRIAL_CLIMATE,
   PREINDUSTRIAL_GAS_CYCLE,
   concentrations,
   effectiveRadiativeForcing,
   type ClimateState,
-  type Emissions,
   type GasCycleState,
 } from './science';
 
@@ -23,7 +22,7 @@ export const MAX_HISTORY_YEARS = 1000;
 export interface HistoryPoint {
   /** Years since the start of the game. */
   readonly year: number;
-  /** °C above pre industrial (1750). */
+  /** Degrees C above pre industrial (1750). */
   readonly surfaceWarming: number;
   /** ppm */
   readonly co2: number;
@@ -38,8 +37,8 @@ export interface HistoryPoint {
 export interface GameState {
   /** Months simulated since the start. The game starts from 1750 conditions. */
   readonly tick: number;
-  /** Yearly human emissions currently in effect. */
-  readonly emissions: Emissions;
+  /** Level and unlock status of every environmental factor. Emissions come from these. */
+  readonly factors: FactorStates;
   readonly gases: GasCycleState;
   readonly climate: ClimateState;
   /** One point per simulated year, oldest first, starting at year 0. */
@@ -65,7 +64,7 @@ export function historyPoint(
 export function createInitialState(): GameState {
   return {
     tick: 0,
-    emissions: NO_EMISSIONS,
+    factors: initialFactorStates(),
     gases: PREINDUSTRIAL_GAS_CYCLE,
     climate: PREINDUSTRIAL_CLIMATE,
     history: [historyPoint(0, PREINDUSTRIAL_GAS_CYCLE, PREINDUSTRIAL_CLIMATE)],

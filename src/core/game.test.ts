@@ -1,7 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { MAX_YEARS_PER_ADVANCE, createGame } from './game';
-
-const EMISSIONS = { co2: 40, ch4: 350, n2o: 7 };
+import { stateWithLevels } from './test-helpers';
 
 describe('Game', () => {
   it('turns advanced years into whole months of simulation', () => {
@@ -23,7 +22,7 @@ describe('Game', () => {
     const game = createGame();
     const listener = vi.fn();
     game.subscribe(listener);
-    game.dispatch({ type: 'setEmissions', emissions: EMISSIONS });
+    game.dispatch({ type: 'upgradeFactor', factor: 'coal' });
     expect(listener).toHaveBeenCalledTimes(1);
     expect(listener).toHaveBeenLastCalledWith(game.getView());
     game.advance(1);
@@ -35,7 +34,7 @@ describe('Game', () => {
     const listener = vi.fn();
     game.subscribe(listener);
     game.advance(0.01); // less than one month
-    game.dispatch({ type: 'setEmissions', emissions: { co2: -5, ch4: 0, n2o: 0 } });
+    game.dispatch({ type: 'upgradeFactor', factor: 'oil' }); // locked
     expect(listener).not.toHaveBeenCalled();
   });
 
@@ -59,24 +58,31 @@ describe('Game', () => {
   it('returns an error result for an invalid action and leaves the game unchanged', () => {
     const game = createGame();
     const before = game.getState();
-    const result = game.dispatch({
-      type: 'setEmissions',
-      emissions: { co2: Number.NaN, ch4: 0, n2o: 0 },
-    });
-    expect(result).toMatchObject({ ok: false, error: { code: 'INVALID_EMISSIONS' } });
+    const result = game.dispatch({ type: 'downgradeFactor', factor: 'coal' });
+    expect(result).toMatchObject({ ok: false, error: { code: 'MIN_LEVEL' } });
     expect(game.getState()).toBe(before);
   });
 
-  it('warms the planet once emissions are set and time passes', () => {
+  it('warms the planet as factors are upgraded and time passes', () => {
     const game = createGame();
-    game.dispatch({ type: 'setEmissions', emissions: EMISSIONS });
+    for (let i = 0; i < 5; i++) {
+      game.dispatch({ type: 'upgradeFactor', factor: 'coal' });
+    }
     game.advance(50);
-    expect(game.getView().surfaceWarming).toBeGreaterThan(0.5);
+    expect(game.getView().surfaceWarming).toBeGreaterThan(0.3);
+  });
+
+  it('returns the events that happened while advancing time', () => {
+    // Fertilizer unlocks once warming reaches 0.3 degrees C (rice is already at level 2).
+    const game = createGame(stateWithLevels({ coal: 5, deforestation: 5, livestock: 5, rice: 2 }));
+    expect(game.getState().factors.fertilizer.unlocked).toBe(false);
+    const events = game.advance(60);
+    expect(events).toContainEqual({ type: 'factorUnlocked', factor: 'fertilizer' });
   });
 
   it('resets to the start, including leftover time', () => {
     const game = createGame();
-    game.dispatch({ type: 'setEmissions', emissions: EMISSIONS });
+    game.dispatch({ type: 'upgradeFactor', factor: 'coal' });
     game.advance(10.08); // leaves 0.96 of a month unused
     game.dispatch({ type: 'reset' });
     expect(game.getView().elapsedYears).toBe(0);

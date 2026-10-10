@@ -64,8 +64,9 @@ export function createGame(initialState: GameState = createInitialState()): Game
         return [];
       }
       leftoverYears = Math.max(0, leftoverYears - ticks / TICKS_PER_YEAR);
-      update(advanceTicks(state, ticks));
-      return [];
+      const result = advanceTicks(state, ticks);
+      update(result.state);
+      return result.events;
     },
 
     dispatch(action) {

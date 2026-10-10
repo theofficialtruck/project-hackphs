@@ -10,24 +10,24 @@ import {
 } from './radiation';
 
 describe('radiation', () => {
-  it('spreads sunlight over the whole sphere: 1361 / 4 ≈ 340 W/m²', () => {
+  it('spreads sunlight over the whole sphere: 1361 / 4 about 340 W/m^2', () => {
     expect(incomingSolar()).toBeCloseTo(340.25, 2);
   });
 
-  it('reflects about 100 W/m² and absorbs about 240 W/m²', () => {
+  it('reflects about 100 W/m^2 and absorbs about 240 W/m^2', () => {
     const budget = radiationBudget(SCIENCE.averageSurfaceTemperature.value);
     expect(budget.reflectedSolar).toBeCloseTo(100.0, 0);
     expect(budget.absorbedSolar).toBeCloseTo(240.2, 1);
   });
 
-  it('gives about 255 K (−18 °C) for an Earth with no greenhouse effect', () => {
+  it('gives about 255 K (-18 C) for an Earth with no greenhouse effect', () => {
     const t = noGreenhouseTemperature();
     // NASA lists a black body temperature of 254.0 K (computed with a slightly higher albedo).
     expect(Math.abs(t - 254.0)).toBeLessThan(1.5);
     expect(t - 273.15).toBeCloseTo(-18, 0);
   });
 
-  it('shows the natural greenhouse effect keeps Earth about 33 °C warmer', () => {
+  it('shows the natural greenhouse effect keeps Earth about 33 C warmer', () => {
     const warming = SCIENCE.averageSurfaceTemperature.value - noGreenhouseTemperature();
     expect(warming).toBeGreaterThan(32);
     expect(warming).toBeLessThan(34);

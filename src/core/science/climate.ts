@@ -2,11 +2,11 @@
  * Temperature response: a two layer energy balance model (Held et al. 2010; Geoffroy et
  * al. 2013), the same kind of emulator IPCC AR6 uses (Cross Chapter Box 7.1).
  *
- *   upper layer:  C  · dT/dt  = F + λ·T − γ·(T − T_d)
- *   deep ocean:   C_d · dT_d/dt = γ·(T − T_d)
+ *   upper layer:  C  * dT/dt  = F + lambda*T - gamma*(T - T_d)
+ *   deep ocean:   C_d * dT_d/dt = gamma*(T - T_d)
  *
  * T is the surface/upper-ocean warming and T_d the deep ocean warming (both in K relative
- * to pre industrial), F the effective radiative forcing, λ the net feedback (negative), γ
+ * to pre industrial), F the effective radiative forcing, lambda the net feedback (negative), gamma
  * the heat exchange between the layers. The deep ocean's large heat capacity is why
  * warming lags behind forcing.
  */
@@ -18,10 +18,11 @@ const UPPER_HEAT_CAPACITY = SCIENCE.upperLayerHeatCapacity.value;
 const DEEP_HEAT_CAPACITY = SCIENCE.deepOceanHeatCapacity.value;
 const HEAT_EXCHANGE = SCIENCE.oceanHeatExchange.value;
 
-/** Default sub steps per simulated year. The fastest timescale is ~4 years, so 24 is plenty. */
+/** Default sub steps per simulated year. The fastest timescale is ~4 years, so 24 is plenty.
+ */
 export const DEFAULT_SUBSTEPS_PER_YEAR = 24;
 
-/** Warming relative to pre industrial, in K (a change of 1 K equals a change of 1 °C). */
+/** Warming relative to pre industrial, in K (a change of 1 K equals a change of 1 C). */
 export interface ClimateState {
   readonly surfaceWarming: number;
   readonly deepOceanWarming: number;
@@ -69,19 +70,16 @@ export function stepClimate(
   return { surfaceWarming: surface, deepOceanWarming: deep };
 }
 
-/** Warming once the climate has fully caught up with a constant forcing: F / −λ. */
 export function equilibriumWarming(forcing: number): number {
   assertFinite(forcing, 'forcing');
   return forcing / -NET_FEEDBACK;
 }
 
-/** Equilibrium warming if only the Planck response acted (no amplifying feedbacks). */
 export function noFeedbackEquilibriumWarming(forcing: number): number {
   assertFinite(forcing, 'forcing');
   return forcing / -SCIENCE.planckFeedback.value;
 }
 
-/** Energy (W m^-2) each feedback adds (+) or removes (−) at the given surface warming. */
 export interface FeedbackBreakdown {
   readonly planck: number;
   readonly waterVapourLapseRate: number;

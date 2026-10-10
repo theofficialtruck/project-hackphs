@@ -1,4 +1,4 @@
-# Atmospheric Science Game
+# Ozone Inc.
 
 An educational science game for high school students (grades 9 to 10). The player controls Earth's
 atmosphere and tries to make the planet warmer by strengthening the greenhouse effect: unlocking
@@ -20,8 +20,8 @@ npm install
 npm run dev
 ```
 
-Then open <http://localhost:5173/dev.html> for the development UI. `index.html` is reserved for the
-final UI.
+Then open <http://localhost:5173/> for the 3D globe page, or <http://localhost:5173/dev.html> for
+the numbers page. Both are temporary pages for testing the engine; the final UI replaces them.
 
 ## Scripts
 
@@ -42,7 +42,13 @@ final UI.
 
 ```text
 src/core/      Game engine: simulation, state, mechanics (no browser APIs)
-src/dev-ui/    Temporary development UI (served by dev.html)
-dev.html       Development UI page
-index.html     Final UI page (placeholder until the UI developer replaces it)
+src/dev-ui/    Temporary pages for testing the engine
+index.html     Globe page (temporary, replaced by the final UI)
+dev.html       Numbers page (temporary)
+tests/         Project wide tests (for example: keyboard characters only)
 ```
+
+## Credits
+
+- Country shapes: Natural Earth via the `world-atlas` package.
+- Scientific sources are listed next to each value in `src/core/science/constants.ts`.

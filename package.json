@@ -21,6 +21,8 @@
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
+    "@types/three": "^0.186.0",
+    "@types/topojson-client": "^3.1.5",
     "eslint": "^10.12.0",
     "eslint-config-prettier": "^10.1.8",
     "prettier": "^3.9.9",
@@ -28,5 +30,11 @@
     "typescript-eslint": "^8.71.1",
     "vite": "^8.3.4",
     "vitest": "^5.0.3"
+  },
+  "dependencies": {
+    "globe.gl": "^2.46.2",
+    "three": "^0.186.1",
+    "topojson-client": "^3.1.0",
+    "world-atlas": "^2.0.2"
   }
 }

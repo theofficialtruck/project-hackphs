@@ -26,7 +26,7 @@ export const PREINDUSTRIAL_CONCENTRATIONS: GasConcentrations = {
 const { a1, b1, c1, d1, a2, b2, c2, d2, a3, b3, d3 } = SCIENCE.greenhouseForcingCoefficients.value;
 
 /**
- * CO2 radiative forcing (SARF), W m⁻².
+ * CO2 radiative forcing (SARF), W m^-2.
  *
  * Roughly logarithmic: each doubling of CO2 adds about the same forcing, because the
  * centre of CO2's absorption band is already saturated and extra CO2 mostly absorbs at
@@ -53,7 +53,7 @@ export function co2RadiativeForcing(co2: number, n2o: number, co2Baseline: numbe
   return (alphaPrime + alphaN2O) * Math.log(co2 / co2Baseline);
 }
 
-/** CH4 radiative forcing (SARF), W m⁻². Grows with the square root of concentration. */
+/** CH4 radiative forcing (SARF), W m^-2. Grows with the square root of concentration. */
 export function ch4RadiativeForcing(ch4: number, n2o: number, ch4Baseline: number): number {
   assertPositive(ch4, 'ch4');
   assertPositive(n2o, 'n2o');
@@ -63,7 +63,7 @@ export function ch4RadiativeForcing(ch4: number, n2o: number, ch4Baseline: numbe
   );
 }
 
-/** N2O radiative forcing (SARF), W m⁻². Grows with the square root of concentration. */
+/** N2O radiative forcing (SARF), W m^-2. Grows with the square root of concentration. */
 export function n2oRadiativeForcing(
   co2: number,
   ch4: number,
@@ -80,7 +80,7 @@ export function n2oRadiativeForcing(
   );
 }
 
-/** Effective radiative forcing per gas and in total, W m⁻². */
+/** Effective radiative forcing per gas and in total, W m^-2. */
 export interface ForcingBreakdown {
   readonly co2: number;
   readonly ch4: number;

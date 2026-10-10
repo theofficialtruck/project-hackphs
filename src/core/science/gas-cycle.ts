@@ -18,16 +18,13 @@ import { PREINDUSTRIAL_CONCENTRATIONS, type GasConcentrations } from './forcing'
 
 const CO2_RESPONSE = SCIENCE.co2ImpulseResponse.value;
 
-/** Gigatonnes of CO2 that raise the atmospheric concentration by 1 ppm (~7.78). */
+/** Giga tonnes of CO2 that raise the atmospheric concentration by 1 ppm (~7.78). */
 export const GT_CO2_PER_PPM = SCIENCE.gigatonnesCarbonPerPpm.value * SCIENCE.co2PerCarbon.value;
 
 /** Human emission rates. */
 export interface Emissions {
-  /** Gigatonnes of CO2 per year. */
   readonly co2: number;
-  /** Teragrams (million tonnes) of CH4 per year. */
   readonly ch4: number;
-  /** Teragrams of nitrogen (as N2O) per year. */
   readonly n2o: number;
 }
 
@@ -56,7 +53,7 @@ export const PREINDUSTRIAL_GAS_CYCLE: GasCycleState = {
 };
 
 /**
- * Exact solution of dX/dt = inflow − X / lifetime over `years`, assuming the inflow
+ * Exact solution of dX/dt = inflow - X / lifetime over `years`, assuming the inflow
  * stays constant during the step. With an infinite lifetime nothing is removed.
  */
 export function decayWithInflow(

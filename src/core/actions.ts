@@ -3,14 +3,17 @@
  * such as invalid input, are returned as an error result instead of being thrown.
  */
 import type { GameEvent } from './events';
-import type { Emissions } from './science';
+import { isFactorId, type FactorId } from './factors';
+import { GAMEPLAY } from './gameplay';
 import { createInitialState, type GameState } from './state';
+import { applyUnlocks } from './unlocks';
 
 export type GameAction =
-  | { readonly type: 'setEmissions'; readonly emissions: Emissions }
+  | { readonly type: 'upgradeFactor'; readonly factor: FactorId }
+  | { readonly type: 'downgradeFactor'; readonly factor: FactorId }
   | { readonly type: 'reset' };
 
-export type ActionErrorCode = 'INVALID_EMISSIONS';
+export type ActionErrorCode = 'UNKNOWN_FACTOR' | 'FACTOR_LOCKED' | 'MAX_LEVEL' | 'MIN_LEVEL';
 
 export interface ActionError {
   readonly code: ActionErrorCode;
@@ -21,30 +24,46 @@ export type ActionResult =
   | { readonly ok: true; readonly state: GameState; readonly events: readonly GameEvent[] }
   | { readonly ok: false; readonly error: ActionError };
 
-function isValidRate(value: number): boolean {
-  return Number.isFinite(value) && value >= 0;
+function fail(code: ActionErrorCode, message: string): ActionResult {
+  return { ok: false, error: { code, message } };
+}
+
+function changeLevel(state: GameState, factor: string, change: 1 | -1): ActionResult {
+  // The UI may pass any string at runtime, so the id is checked even though the type is FactorId.
+  if (!isFactorId(factor)) {
+    return fail('UNKNOWN_FACTOR', `There is no factor called "${factor}"`);
+  }
+  const current = state.factors[factor];
+  if (!current.unlocked) {
+    return fail('FACTOR_LOCKED', `${factor} is still locked`);
+  }
+  const level = current.level + change;
+  if (level > GAMEPLAY.maxFactorLevel.value) {
+    return fail('MAX_LEVEL', `${factor} is already at the highest level`);
+  }
+  if (level < 0) {
+    return fail('MIN_LEVEL', `${factor} is already at level 0`);
+  }
+
+  const changed: GameState = {
+    ...state,
+    factors: { ...state.factors, [factor]: { ...current, level } },
+  };
+  const event: GameEvent =
+    change > 0
+      ? { type: 'factorUpgraded', factor, level }
+      : { type: 'factorDowngraded', factor, level };
+  // A higher level may meet another factor's unlock requirement.
+  const unlocked = applyUnlocks(changed);
+  return { ok: true, state: unlocked.state, events: [event, ...unlocked.events] };
 }
 
 export function applyAction(state: GameState, action: GameAction): ActionResult {
   switch (action.type) {
-    case 'setEmissions': {
-      const { co2, ch4, n2o } = action.emissions;
-      if (!isValidRate(co2) || !isValidRate(ch4) || !isValidRate(n2o)) {
-        return {
-          ok: false,
-          error: {
-            code: 'INVALID_EMISSIONS',
-            message: `Emissions must be finite and not negative, got ${JSON.stringify(action.emissions)}`,
-          },
-        };
-      }
-      const emissions = { co2, ch4, n2o };
-      return {
-        ok: true,
-        state: { ...state, emissions },
-        events: [{ type: 'emissionsChanged', emissions }],
-      };
-    }
+    case 'upgradeFactor':
+      return changeLevel(state, action.factor, 1);
+    case 'downgradeFactor':
+      return changeLevel(state, action.factor, -1);
     case 'reset':
       return { ok: true, state: createInitialState(), events: [{ type: 'gameReset' }] };
   }

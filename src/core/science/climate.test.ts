@@ -37,7 +37,7 @@ describe('two-layer climate model', () => {
     expect(Math.abs(energyImbalance(DOUBLED_CO2_FORCING, state.surfaceWarming))).toBeLessThan(0.01);
   });
 
-  it('has an equilibrium sensitivity inside the AR6 likely range (2.5–4 °C)', () => {
+  it('has an equilibrium sensitivity inside the AR6 likely range (2.5 to 4 C)', () => {
     const ecs = equilibriumWarming(DOUBLED_CO2_FORCING);
     expect(ecs).toBeGreaterThanOrEqual(2.5);
     expect(ecs).toBeLessThanOrEqual(4.0);
@@ -52,8 +52,8 @@ describe('two-layer climate model', () => {
     expect(energyImbalance(DOUBLED_CO2_FORCING, state.surfaceWarming)).toBeGreaterThan(0);
   });
 
-  it('has a transient climate response inside the AR6 likely range (1.4–2.2 °C)', () => {
-    // CO₂ rising 1% per year doubles after about 70 years.
+  it('has a transient climate response inside the AR6 likely range (1.4 to 2.2 C)', () => {
+    // CO2 rising 1% per year doubles after about 70 years.
     let state = PREINDUSTRIAL_CLIMATE;
     for (let year = 0; year < 70; year++) {
       const co2 = PREINDUSTRIAL_CONCENTRATIONS.co2 * 1.01 ** (year + 0.5);

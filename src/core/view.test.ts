@@ -1,12 +1,15 @@
 import { describe, expect, it } from 'vitest';
+import { FACTORS } from './factors';
 import { advanceTicks } from './simulation';
 import { createInitialState } from './state';
+import { presentDayState, stateWithLevels } from './test-helpers';
 import { selectView } from './view';
 
 describe('view', () => {
   it('shows a balanced planet at the start', () => {
     const view = selectView(createInitialState());
     expect(view.elapsedYears).toBe(0);
+    expect(view.emissions).toEqual({ co2: 0, ch4: 0, n2o: 0 });
     expect(view.forcing.total).toBe(0);
     expect(view.surfaceWarming).toBe(0);
     expect(view.equilibriumWarming).toBe(0);
@@ -14,11 +17,29 @@ describe('view', () => {
     expect(view.radiation.outgoingInfrared).toBeCloseTo(view.radiation.absorbedSolar, 10);
   });
 
+  it('lists every factor with its level, lock status and requirements', () => {
+    const view = selectView(createInitialState());
+    expect(view.factors.map((f) => f.id)).toEqual(FACTORS.map((f) => f.id));
+    const oil = view.factors.find((f) => f.id === 'oil');
+    expect(oil).toMatchObject({ level: 0, unlocked: false, maxLevel: 10, presentDayLevel: 5 });
+    expect(oil?.requirements).toEqual([{ text: 'Coal power at level 3', met: false }]);
+  });
+
+  it('marks a requirement as met once it is true', () => {
+    const view = selectView(stateWithLevels({ coal: 3 }));
+    const oil = view.factors.find((f) => f.id === 'oil');
+    expect(oil?.requirements[0]?.met).toBe(true);
+  });
+
+  it('shows the emissions of each factor and in total', () => {
+    const view = selectView(stateWithLevels({ livestock: 2 }));
+    const livestock = view.factors.find((f) => f.id === 'livestock');
+    expect(livestock?.emissions.ch4).toBeCloseTo(2 * (livestock?.emissionsPerLevel.ch4 ?? 0), 10);
+    expect(view.emissions.ch4).toBeCloseTo(livestock?.emissions.ch4 ?? 0, 10);
+  });
+
   it('shows Earth gaining energy and warming that has not caught up yet', () => {
-    const state = advanceTicks(
-      { ...createInitialState(), emissions: { co2: 40, ch4: 350, n2o: 7 } },
-      30 * 12,
-    );
+    const { state } = advanceTicks(presentDayState(), 30 * 12);
     const view = selectView(state);
     expect(view.elapsedYears).toBe(30);
     expect(view.forcing.total).toBeGreaterThan(0);

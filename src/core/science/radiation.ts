@@ -9,13 +9,13 @@ import { SCIENCE } from './constants';
 
 const SIGMA = SCIENCE.stefanBoltzmann.value;
 
-/** Infrared power radiated per m^2 by a black body at `temperatureK` (Stefan Boltzmann law: σT^4). */
+/** Infrared power radiated per m^2 by a black body at `temperatureK` (Stefan Boltzmann law: sigmaT^4). */
 export function blackBodyEmission(temperatureK: number): number {
   assertPositive(temperatureK, 'temperatureK');
   return SIGMA * temperatureK ** 4;
 }
 
-/** Temperature of a black body radiating `fluxWm2` watts per m^2 (the inverse of σT^4). */
+/** Temperature of a black body radiating `fluxWm2` watts per m^2 (the inverse of sigmaT^4). */
 export function blackBodyTemperature(fluxWm2: number): number {
   assertPositive(fluxWm2, 'fluxWm2');
   return (fluxWm2 / SIGMA) ** 0.25;
@@ -36,7 +36,7 @@ export function absorbedSolar(): number {
 
 /**
  * Temperature Earth would have if it had no greenhouse effect: the temperature at which
- * a black body radiates away exactly the sunlight Earth absorbs (about 255 K, −18 °C).
+ * a black body radiates away exactly the sunlight Earth absorbs (about 255 K, -18 C).
  */
 export function noGreenhouseTemperature(): number {
   return blackBodyTemperature(absorbedSolar());
@@ -64,7 +64,7 @@ export interface RadiationBudget {
  * @param surfaceTemperatureK Global mean surface temperature.
  * @param energyImbalance     Energy Earth is gaining, W m^-2 (0 = balanced).
  *   Earth gains energy when less infrared escapes than the sunlight it absorbs, so
- *   outgoing infrared = absorbed sunlight − imbalance.
+ *   outgoing infrared = absorbed sunlight - imbalance.
  */
 export function radiationBudget(surfaceTemperatureK: number, energyImbalance = 0): RadiationBudget {
   assertFinite(energyImbalance, 'energyImbalance');

@@ -13,9 +13,7 @@ export type ValueKind = 'measured' | 'assessed' | 'model-parameter' | 'gameplay'
 export interface Sourced<T> {
   readonly value: T;
   readonly unit: string;
-  /** Plain language meaning of the value. */
   readonly description: string;
-  /** Where the value comes from: document, table/section and URL. */
   readonly source: string;
   readonly kind: ValueKind;
 }

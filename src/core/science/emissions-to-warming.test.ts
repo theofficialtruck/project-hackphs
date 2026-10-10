@@ -1,9 +1,9 @@
 // From emissions to warming: combines the gas cycle, forcing and climate model.
 // Reference values from IPCC AR6 WG1 Chapter 5:
 // - Section 5.5.1.4: warming per 1000 GtC of cumulative CO2 emissions (TCRE) is likely
-//   1.0–2.3 °C, best estimate 1.65 °C.
+//   1.0 to 2.3 C, best estimate 1.65 C.
 // - Section 5.5.2.2.4: the zero emissions commitment (warming in the 50 years after CO2
-//   emissions stop) has a central value of zero, likely range ±0.19 °C.
+//   emissions stop) has a central value of zero, likely range +/-0.19 C.
 import { describe, expect, it } from 'vitest';
 import { PREINDUSTRIAL_CLIMATE, stepClimate, type ClimateState } from './climate';
 import { effectiveRadiativeForcing } from './forcing';
@@ -35,7 +35,7 @@ const START: World = { gases: PREINDUSTRIAL_GAS_CYCLE, climate: PREINDUSTRIAL_CL
 const CO2_ONLY: Emissions = { ...NO_EMISSIONS, co2: 36.64 };
 
 describe('cumulative CO2 emissions', () => {
-  it('warms by an amount per 1000 GtC inside the AR6 likely range (1.0–2.3 °C)', () => {
+  it('warms by an amount per 1000 GtC inside the AR6 likely range (1.0 to 2.3 C)', () => {
     const afterEmitting = simulate(START, CO2_ONLY, 100);
     expect(afterEmitting.climate.surfaceWarming).toBeGreaterThanOrEqual(1.0);
     expect(afterEmitting.climate.surfaceWarming).toBeLessThanOrEqual(2.3);

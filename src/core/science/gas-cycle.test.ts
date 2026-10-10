@@ -37,12 +37,12 @@ describe('gas cycle', () => {
     expect(concentrations(PREINDUSTRIAL_GAS_CYCLE)).toEqual(PREINDUSTRIAL_CONCENTRATIONS);
   });
 
-  it('needs about 7.8 Gt of CO2 to raise CO2 by 1 ppm (2.124 GtC × 3.664)', () => {
+  it('needs about 7.8 Gt of CO2 to raise CO2 by 1 ppm (2.124 GtC x 3.664)', () => {
     expect(GT_CO2_PER_PPM).toBeCloseTo(7.782, 3);
     expect(excessCo2(pulse({ co2: GT_CO2_PER_PPM }))).toBeCloseTo(1, 3);
   });
 
-  it('keeps about a quarter of a CO2 pulse in the air after 1000 years (Joos et al. 2013: 25 ± 9%)', () => {
+  it('keeps about a quarter of a CO2 pulse in the air after 1000 years (Joos et al. 2013: 25 +/- 9%)', () => {
     const after = run(pulse({ co2: 100 * GT_CO2_PER_PPM }), NO_EMISSIONS, 1000);
     const fractionLeft = excessCo2(after) / 100;
     expect(fractionLeft).toBeGreaterThan(0.16);

@@ -3,11 +3,28 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Atmospheric Science Game</title>
+    <title>Ozone Inc.</title>
   </head>
   <body>
-    <!-- Placeholder. This page belongs to the final UI and will be replaced by setty -->
-    <h1>Atmospheric Science Game</h1>
-    <p>The final UI is not built yet. Open the <a href="/dev.html">development UI</a>.</p>
+    <!-- Temporary globe page. This page belongs to the final UI and will be replaced by setty -->
+    <div id="globe"></div>
+    <aside id="panel">
+      <h1>Ozone Inc.</h1>
+      <p id="status"></p>
+      <p class="controls">
+        <button id="play">Play</button>
+        <button id="step">Step 1 year</button>
+        <select id="speed"></select>
+        <button id="reset">Reset</button>
+      </p>
+      <div id="factors"></div>
+      <pre id="news"></pre>
+      <p><a href="/dev.html">Numbers page</a></p>
+    </aside>
+    <aside id="country" hidden>
+      <h2 id="country-name"></h2>
+      <p id="country-text"></p>
+    </aside>
+    <script type="module" src="/src/dev-ui/globe-page.ts"></script>
   </body>
 </html>
