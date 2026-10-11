@@ -6,8 +6,7 @@ and upgrading real human activities such as coal power, livestock farming and fe
 temperature change comes from a simplified but scientifically sourced climate model, so the player
 learns how emissions, greenhouse gases, infrared radiation and temperature are actually connected.
 
-The engine (simulation, game state, mechanics) is plain TypeScript and runs entirely in the browser. There is no server.
-
+The engine (simulation, game state, mechanics) is plain TypeScript and runs entirely in the browser. No need for a server.
 ## Features
 
 - Based on formulas from real life climate scientists to simulate data
@@ -33,7 +32,7 @@ The engine (simulation, game state, mechanics) is plain TypeScript and runs enti
 ...
 
 ## Getting started
-
+npx prettier --write README.md 
 ```bash
 npm install
 npm run dev
