@@ -18,21 +18,18 @@ The engine (simulation, game state, mechanics) is plain TypeScript and runs enti
 - TypeScript
 - View3
 - Audio made with Elevenlabs
-- Three.js - 3d graphics rendering
-- Globe.gl - 3d mapping
+- Three.js - 3D graphics rendering
+- Globe.gl - 3D mapping
 - World-Atlas - geographic data on countriy boundaries
 - Topojson-client - formatting
-- d3-geo - transforms the spherical globe into a 2d circle
+- d3-geo - transforms the spherical globe into a 2D circle
   
 ## Requirements
 
 - Node.js `^22.13.0` or `>=24.0.0`
 - npm
 
-...
-
 ## Getting started
-npx prettier --write README.md 
 ```bash
 npm install
 npm run dev
