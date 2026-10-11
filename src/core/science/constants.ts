@@ -301,7 +301,8 @@ export const SCIENCE = {
   cfc12PerturbationLifetime: {
     value: 102,
     unit: 'years',
-    description: 'Time for extra CFC-12 to shrink to about 37% of its size. CFCs last about 100 years.',
+    description:
+      'Time for extra CFC-12 to shrink to about 37% of its size. CFCs last about 100 years.',
     source: `${AR6_METRICS_TABLE}; matches ${WMO_OZONE_2022}, Q15 ("about 50 and 100 years")`,
     kind: 'assessed',
   },
@@ -323,7 +324,8 @@ export const SCIENCE = {
   ozoneLossToday: {
     value: 2.5,
     unit: 'percent',
-    description: 'How much thinner the global ozone layer has been since 2010 than in 1964 to 1980.',
+    description:
+      'How much thinner the global ozone layer has been since 2010 than in 1964 to 1980.',
     source: `${WMO_OZONE_2022}, Q12 ("about 2 to 3% below the 1964-1980 average")`,
     kind: 'measured',
   },
