@@ -83,3 +83,4 @@ scripts/       Data build scripts
 - AI was used to fix some of the merge conflicts
 - AI was used for some styling
 - AI was used for all audio (Elevenlabs)
+- AI was used to help integrate the audio in the game
