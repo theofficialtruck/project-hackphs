@@ -90,6 +90,35 @@ export const SCIENCE = {
     kind: 'measured',
   },
 
+  // ------------------------------------------------------- real world today
+  co2Concentration2019: {
+    value: 410,
+    unit: 'parts per million',
+    description: 'CO2 in the air in 2019 (yearly average).',
+    source: `${AR6_SPM}, A.1.1`,
+    kind: 'measured',
+  },
+  ch4Concentration2019: {
+    value: 1866,
+    unit: 'parts per billion',
+    description: 'Methane in the air in 2019 (yearly average).',
+    source: `${AR6_SPM}, A.1.1`,
+    kind: 'measured',
+  },
+  n2oConcentration2019: {
+    value: 332,
+    unit: 'parts per billion',
+    description: 'Nitrous oxide in the air in 2019 (yearly average).',
+    source: `${AR6_SPM}, A.1.1`,
+    kind: 'measured',
+  },
+  observedWarming2011To2020: {
+    value: 1.09,
+    unit: 'degrees C',
+    description: 'How much warmer Earth was in 2011 to 2020 than in 1850 to 1900.',
+    source: `${AR6_SPM}, A.1.2`,
+    kind: 'measured',
+  },
   // ---------------------------------------------------------------- forcing
   greenhouseForcingCoefficients: {
     value: {

@@ -3,47 +3,116 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Numbers - Ozone Inc.</title>
-    <style>
-      body { margin: 24px auto; max-width: 920px; padding: 0 18px; background: #0b1220; color: #e8eef5; font: 15px/1.5 system-ui, sans-serif; }
-      button, select { padding: 5px 9px; }
-      section, .controls { margin: 18px 0; padding: 14px; background: #111e30; border: 1px solid #34445b; border-radius: 8px; }
-      .factor { margin: 8px 0; padding: 8px 0; border-top: 1px solid #34445b; }
-      .factor-head { display: flex; align-items: center; gap: 8px; }
-      .factor-head strong { flex: 1; }
-      .factor-detail { margin-left: 60px; color: #b4c3d6; font-size: 13px; }
-      .factor.locked { opacity: .55; }
-      .preview, pre { white-space: pre-wrap; }
-      #news { max-height: 220px; overflow: auto; }
-      .myth-card { border-left: 4px solid #f0bd63; padding-left: 10px; }
-    </style>
+    <title>Ozone Inc.</title>
   </head>
   <body>
-    <main id="app">
-      <h1>Ozone Inc. — numbers page</h1>
-      <p id="status" aria-live="polite"></p>
-      <p><strong id="money"></strong> <span id="income"></span></p>
-      <p id="ozone"></p>
-      <div class="controls">
-        <button id="play">Play</button>
-        <button id="step">Advance one year</button>
-        <button id="reset">Reset</button>
-        <label>Speed <select id="speed"></select></label>
+    <div id="globe"></div>
+
+    <section id="intro">
+      <div class="intro-top">
+        <h1 class="wordmark">Ozone Inc.</h1>
+        <p class="goal">You run Ozone Inc. Your goal: warm the Earth to +20 degrees C.</p>
       </div>
-      <section>
-        <h2>Activities</h2>
-        <div id="factors"></div>
-        <pre id="preview">Hover over + to preview an upgrade.</pre>
+      <div class="intro-bottom">
+        <div class="facts" id="hook">
+          <div class="fact cold">
+            <span class="fact-label">Without greenhouse gases, Earth would be about</span>
+            <span class="temp"><b id="temp-cold"></b> degrees C</span>
+          </div>
+          <div class="fact warm">
+            <span class="fact-label">With them, it is about</span>
+            <span class="temp"><b id="temp-warm"></b> degrees C</span>
+          </div>
+        </div>
+        <button id="start" class="primary">Start</button>
+      </div>
+    </section>
+
+    <header id="hud" hidden>
+      <div class="warming">
+        <span id="warming" class="big">+0.00</span>
+        <span class="unit">degrees C global warming</span>
+      </div>
+      <div class="stats">
+        <span id="year">Year 0</span>
+        <span id="money">0 dollars</span>
+        <span id="income" class="dim"></span>
+      </div>
+      <div class="clock">
+        <button id="play">Pause</button>
+      </div>
+      <div id="track" class="track" aria-label="Warming track to +20 degrees C">
+        <div id="fill" class="fill"></div>
+      </div>
+      <label class="speed" for="speed">
+        Simulation speed
+        <input id="speed" type="range" min="0" max="100" step="1" value="0" />
+        <output id="speed-label" for="speed">0.5 years per second</output>
+      </label>
+    </header>
+
+    <aside id="panel" hidden>
+      <h2>Activities</h2>
+      <div id="factors"></div>
+      <p id="preview" class="preview" aria-live="polite">
+        Hover over + to see what one more level would do.
+      </p>
+      <section id="ozone-panel" aria-labelledby="ozone-heading">
+        <h3 id="ozone-heading">Ozone layer</h3>
+        <p id="ozone-copy">Ozone layer (blocks UV sunlight).</p>
+        <div
+          id="ozone-gauge"
+          role="meter"
+          aria-label="Ozone layer loss"
+          aria-valuemin="0"
+          aria-valuemax="5"
+          aria-valuenow="0"
+        >
+          <div id="ozone-gauge-fill"></div>
+        </div>
+        <strong id="ozone-loss">0.00% thinner</strong>
       </section>
-      <section>
-        <h2>Science cards</h2>
-        <div id="cards"></div>
+      <details id="science">
+        <summary>Science</summary>
+        <p id="science-text"></p>
+      </details>
+      <details id="science-notes-details">
+        <summary>Science notes</summary>
+        <div id="science-notes"></div>
+      </details>
+    </aside>
+
+    <aside id="side" hidden>
+      <section id="feed" aria-label="Updates">
+        <h2>Updates</h2>
+        <ol id="notes" aria-live="polite" aria-relevant="additions"></ol>
+        <p id="notes-empty" class="dim">News about your planet will appear here as it changes.</p>
       </section>
-      <section>
-        <h2>Recent events</h2>
-        <pre id="news" aria-live="polite"></pre>
-      </section>
-    </main>
-    <script type="module" src="/src/dev-ui/numbers-page.ts"></script>
+      <aside id="country" hidden>
+        <button id="country-close" aria-label="Close">x</button>
+        <h2 id="country-name"></h2>
+        <p id="country-text"></p>
+      </aside>
+    </aside>
+
+    <div id="fx" aria-hidden="true"></div>
+    <div id="debrief" hidden></div>
+    <div id="gameover" hidden role="alertdialog" aria-modal="true" aria-labelledby="gameover-title">
+      <div class="gameover-body">
+        <h2 id="gameover-title">Game over</h2>
+        <p id="gameover-message"></p>
+        <p>
+          At about +7 degrees C, extreme combinations of heat and humidity could exceed the human
+          survival limit in some regions. At about +11 to +12 degrees C, those conditions could
+          affect most of the population where people live today.
+        </p>
+        <p class="dim">
+          Source: Sherwood and Huber (2010), “An adaptability limit to climate change due to heat
+          stress,” Proceedings of the National Academy of Sciences.
+        </p>
+        <button id="see-results" class="primary">See your results</button>
+      </div>
+    </div>
+    <script type="module" src="/src/dev-ui/main.ts"></script>
   </body>
 </html>
