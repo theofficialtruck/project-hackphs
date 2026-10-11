@@ -46,10 +46,22 @@ export const MILESTONES: readonly Milestone[] = [
     source: `${SPM}, B.1.1`,
   },
   {
-    warming: GAMEPLAY.endingWarming.value,
+    warming: 4,
     title: 'Four degrees warmer',
     text: 'Once in 10 years heat extremes now happen about 9.4 times as often and are about 5.1 degrees C hotter.',
     source: `${SPM}, Figure SPM.6`,
+  },
+  {
+    warming: 7,
+    title: 'Dangerous heat reaches some regions',
+    text: 'At about 7 degrees C of global warming, combinations of heat and humidity could exceed the human survival limit in some regions.',
+    source: 'Sherwood and Huber (2010), Proceedings of the National Academy of Sciences',
+  },
+  {
+    warming: 11,
+    title: 'Dangerous heat reaches most people',
+    text: 'At about 11 to 12 degrees C of global warming, combinations of heat and humidity could exceed the human survival limit across regions where most people live today.',
+    source: 'Sherwood and Huber (2010), Proceedings of the National Academy of Sciences',
   },
 ];
 
@@ -124,6 +136,7 @@ export function createDebrief(state: GameState): Debrief | null {
       'The game starts from 1750 conditions and how fast years pass is a game choice.',
       'Pollution particles (aerosols) that hide some real world warming are left out.',
       'Country values come from large IPCC regions, not from each country separately.',
+      'The game follows warming far above 5 degrees C, beyond the IPCC scenario range used for most projections.',
     ],
   };
 }

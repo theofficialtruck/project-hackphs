@@ -86,7 +86,9 @@ const COLOR_STOPS: readonly (readonly [number, readonly [number, number, number]
   [0, [0, 230, 118]],
   [1.5, [255, 230, 0]],
   [3, [255, 145, 0]],
-  [4, [255, 23, 68]],
+  [5, [255, 23, 68]],
+  [10, [41, 121, 255]],
+  [20, [170, 0, 255]],
 ];
 
 function $<T extends HTMLElement>(selector: string): T {
@@ -147,7 +149,7 @@ function describePreview(p: Preview): string {
 // ---- State -------------------------------------------------------------------------------
 const game = createGame();
 const getView = (): AnyView => game.getView() as AnyView;
-// The track and UI use the engine's +4 degree ending.
+// The track and UI use the engine's configured ending.
 const TRACK_MAX = getView().endingWarming;
 const MIN_SPEED = 0.5;
 const MAX_SPEED = 1000;
@@ -158,8 +160,6 @@ let shownWarming = 0;
 let coloredAt = NaN;
 let selectedCountry: string | null = null;
 let hovered: object | null = null;
-const cards: UiEvent[] = [];
-let cardOpen = false;
 
 // ---- Globe -------------------------------------------------------------------------------
 const nameOf = (d: object): string =>
@@ -234,6 +234,7 @@ $('#start').addEventListener('click', () => {
   }, 600);
   $('#hud').hidden = false;
   $('#panel').hidden = false;
+  $('#side').hidden = false;
   render(getView());
 });
 
@@ -286,7 +287,7 @@ function frame(now: number): void {
   const seconds = Math.min((now - last) / 1000, 0.25);
   last = now;
   const view = getView();
-  if (started && playing && !cardOpen && !view.ended) handle(game.advance(seconds * speed));
+  if (started && playing && !view.ended) handle(game.advance(seconds * speed));
   shownWarming += (view.surfaceWarming - shownWarming) * Math.min(1, seconds * 6); // smooth count up
   paintWarming(now);
   requestAnimationFrame(frame);
@@ -373,61 +374,81 @@ function renderFactors(view: AnyView): void {
   }
 }
 
-// ---- Events, cards, debrief --------------------------------------------------------------
-function handle(events: readonly UiEvent[]): void {
-  for (const e of events) {
-    if (
-      e.type === 'milestoneReached' ||
-      e.type === 'objectiveCompleted' ||
-      e.type === 'cardShown'
-    ) {
-      cards.push(e);
-    }
-    if (e.type === 'gameEnded') {
-      playing = false;
-      paintClock();
-      renderDebrief(getView());
-    }
-    if (e.type === 'gameReset') {
-      cards.length = 0;
-      shownWarming = 0;
-      selectedCountry = null;
-      $('#debrief').hidden = true;
-    }
+// ---- Updates and ending ------------------------------------------------------------------
+function appendUpdate(
+  kind: 'milestone' | 'goal' | 'science',
+  title: string,
+  text: string,
+  source = '',
+): void {
+  const note = document.createElement('li');
+  note.className = `note ${kind}`;
+  const heading = document.createElement('strong');
+  heading.className = 'note-title';
+  heading.textContent = title;
+  const body = document.createElement('p');
+  body.textContent = text;
+  note.append(heading, body);
+  if (source) {
+    const citation = document.createElement('small');
+    citation.textContent = `Source: ${source}`;
+    note.append(citation);
   }
-  nextCard();
+  $('#notes').prepend(note);
 }
 
-function nextCard(): void {
-  const e = cards.shift();
-  cardOpen = e !== undefined;
-  $('#card').classList.remove('myth-card');
-  $('#card').hidden = !cardOpen;
-  if (!e) return;
+function handle(events: readonly UiEvent[]): void {
   const view = getView();
-  if (e.type === 'milestoneReached') {
-    const m = (view.milestones ?? []).find((x) => x.warming === e.warming);
-    $('#card-title').textContent = `+${e.warming} degrees C: ${m?.title ?? ''}`;
-    $('#card-text').textContent = m?.text ?? '';
-    $('#card-source').textContent = m ? `Source: ${m.source}` : '';
-  } else if (e.type === 'objectiveCompleted') {
-    const o = (view.objectives ?? []).find((x) => x.id === e.objective);
-    $('#card-title').textContent = `Goal done: +${e.reward} dollars`;
-    $('#card-text').textContent = `${o?.text ?? ''} ${o?.lesson ?? ''}`;
-    $('#card-source').textContent = '';
-  } else if (e.type === 'cardShown') {
-    const card = getView().cards.find((c) => c.id === e.card);
-    if (!card) return nextCard();
-    $('#card').classList.toggle('myth-card', card.id === 'ozone-not-warming');
-    $('#card-title').textContent =
-      card.id === 'ozone-not-warming'
-        ? `Myth / Reality: ${card.title.replace(/^Myth: /, '')}`
-        : card.title;
-    $('#card-text').textContent = card.text;
-    $('#card-source').textContent = `Source: ${card.source}`;
+  for (const event of events) {
+    if (event.type === 'milestoneReached') {
+      const milestone = view.milestones.find((item) => item.warming === event.warming);
+      if (milestone) {
+        appendUpdate(
+          'milestone',
+          `+${event.warming} degrees C: ${milestone.title}`,
+          milestone.text,
+          milestone.source,
+        );
+      }
+    } else if (event.type === 'objectiveCompleted') {
+      const objective = view.objectives.find((item) => item.id === event.objective);
+      if (objective) {
+        appendUpdate(
+          'goal',
+          `Goal complete: +${event.reward} dollars`,
+          `${objective.text} ${objective.lesson}`,
+        );
+      }
+    } else if (event.type === 'cardShown') {
+      const card = view.cards.find((item) => item.id === event.card);
+      if (card) {
+        const title =
+          card.id === 'ozone-not-warming'
+            ? `Myth / Reality: ${card.title.replace(/^Myth: /, '')}`
+            : card.title;
+        appendUpdate('science', title, card.text, card.source);
+      }
+    } else if (event.type === 'gameEnded') {
+      playing = false;
+      paintClock();
+      $('#gameover-message').textContent =
+        `Global warming has reached +${fmt(view.endingWarming, 0)} degrees C.`;
+      renderDebrief(view);
+      $('#gameover').hidden = false;
+    } else if (event.type === 'gameReset') {
+      $('#notes').replaceChildren();
+      $('#gameover').hidden = true;
+      $('#debrief').hidden = true;
+      shownWarming = 0;
+      selectedCountry = null;
+    }
   }
 }
-$('#card-ok').addEventListener('click', nextCard);
+
+$('#see-results').addEventListener('click', () => {
+  $('#gameover').hidden = true;
+  $('#debrief').hidden = false;
+});
 
 function renderDebrief(view: AnyView): void {
   const d = view.debrief;
@@ -442,11 +463,12 @@ function renderDebrief(view: AnyView): void {
     ${`<ul>${d.realWorld.map((r) => `<li>${r.text} <span class="dim">Source: ${r.source}</span></li>`).join('')}</ul>`}
     <h3>Where this game is simpler than reality</h3>${li(d.gameSimplifications)}
     <button id="again" class="primary">Play again</button></div>`;
-  box.hidden = false;
+  box.hidden = true;
   $('#again').addEventListener('click', () => {
     const r = game.dispatch({ type: 'reset' });
     if (r.ok) handle(r.events);
     playing = true;
+    paintClock();
   });
 }
 
@@ -536,9 +558,9 @@ track.insertAdjacentHTML(
     .join('') +
     `<i class="tick today" style="left:${pctOf(getView().realWorld.warming)}" title="Real world 2011 to 2020: +${getView().realWorld.warming} degrees C"></i>` +
     `<span class="mark today" style="left:${pctOf(getView().realWorld.warming)}">Today +${getView().realWorld.warming}</span>` +
-    [2, 3, 4]
+    [5, 10, 15, 20]
       .map(
-        (w) => `<span class="mark${w === 4 ? ' last' : ''}" style="left:${pctOf(w)}">+${w}</span>`,
+        (w) => `<span class="mark${w === 20 ? ' last' : ''}" style="left:${pctOf(w)}">+${w}</span>`,
       )
       .join(''),
 );
