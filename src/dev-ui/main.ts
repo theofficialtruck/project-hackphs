@@ -18,6 +18,15 @@ import {
   type GameView,
 } from '../core';
 import { playUpgradeEffect } from './effects';
+import {
+  isMuted,
+  playFactorSound,
+  playSound,
+  preloadSounds,
+  setMuted,
+  startAmbience,
+  stopAmbience,
+} from './sound';
 import './style.css';
 
 // The engine in a repo can be older or newer than the handoff. These local shapes let this screen
@@ -227,6 +236,9 @@ $('#temp-warm').textContent = String(plainC(science.SCIENCE.averageSurfaceTemper
 $('#start').addEventListener('click', () => {
   started = true;
   playing = true;
+  preloadSounds();
+  playSound('start');
+  startAmbience();
   const intro = $('#intro');
   intro.classList.add('leaving'); // fades out, then is removed
   setTimeout(() => {
@@ -247,8 +259,21 @@ speedInput.addEventListener('input', () => {
   speed = raw >= 10 ? Math.round(raw) : Math.round(raw * 10) / 10;
   paintClock();
 });
+const soundButton = $<HTMLButtonElement>('#sound');
+function paintSound(): void {
+  soundButton.textContent = isMuted() ? 'Sound off' : 'Sound on';
+  soundButton.setAttribute('aria-pressed', String(!isMuted()));
+}
+soundButton.addEventListener('click', () => {
+  setMuted(!isMuted());
+  paintSound();
+  playSound('click');
+});
+paintSound();
+
 playButton.addEventListener('click', () => {
   playing = !playing;
+  playSound('click');
   paintClock();
 });
 function paintClock(): void {
@@ -334,7 +359,12 @@ factorBox.addEventListener('click', (e) => {
   });
   if (result.ok) {
     handle(result.events);
-    if (b.dataset.act === 'up') playUpgradeEffect(factor);
+    if (b.dataset.act === 'up') {
+      playUpgradeEffect(factor);
+      playFactorSound(factor);
+    } else {
+      playSound('puff');
+    }
     row?.classList.add('flash');
     setTimeout(() => row?.classList.remove('flash'), 600);
     return;
@@ -403,6 +433,7 @@ function handle(events: readonly UiEvent[]): void {
     if (event.type === 'milestoneReached') {
       const milestone = view.milestones.find((item) => item.warming === event.warming);
       if (milestone) {
+        playSound('milestone');
         appendUpdate(
           'milestone',
           `+${event.warming} degree${event.warming === 1 ? '' : 's'} C: ${milestone.title}`,
@@ -413,6 +444,7 @@ function handle(events: readonly UiEvent[]): void {
     } else if (event.type === 'objectiveCompleted') {
       const objective = view.objectives.find((item) => item.id === event.objective);
       if (objective) {
+        playSound('goal');
         appendUpdate(
           'goal',
           `Goal complete: +${event.reward} dollars`,
@@ -422,11 +454,14 @@ function handle(events: readonly UiEvent[]): void {
     } else if (event.type === 'cardShown') {
       const card = view.cards.find((item) => item.id === event.card);
       if (card) {
+        playSound('notification', 0.5);
         appendUpdate('science', card.title, card.text, card.source);
       }
     } else if (event.type === 'gameEnded') {
       playing = false;
       paintClock();
+      stopAmbience();
+      playSound('gameOver', 0.8);
       $('#gameover-message').textContent =
         `Global warming has reached +${fmt(view.endingWarming, 0)} degrees C.`;
       renderDebrief(view);
@@ -435,6 +470,7 @@ function handle(events: readonly UiEvent[]): void {
       $('#notes').replaceChildren();
       $('#gameover').hidden = true;
       $('#debrief').hidden = true;
+      startAmbience();
       shownWarming = 0;
       selectedCountry = null;
     }
@@ -442,6 +478,7 @@ function handle(events: readonly UiEvent[]): void {
 }
 
 $('#see-results').addEventListener('click', () => {
+  playSound('click');
   $('#gameover').hidden = true;
   $('#debrief').hidden = false;
 });
