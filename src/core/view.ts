@@ -12,6 +12,7 @@ import {
   type FactorId,
 } from './factors';
 import { GAMEPLAY } from './gameplay';
+import { regionClimates, type RegionClimate } from './regions';
 import {
   SCIENCE,
   concentrations,
@@ -80,6 +81,7 @@ export interface GameView {
   readonly radiation: RadiationBudget;
   /** Energy each climate feedback adds (+) or removes (-) at the current warming, W m^-2. */
   readonly feedbacks: FeedbackBreakdown;
+  readonly regions: readonly RegionClimate[];
   /** One point per simulated year, oldest first. */
   readonly history: readonly HistoryPoint[];
 }
@@ -124,6 +126,7 @@ export function selectView(state: GameState): GameView {
     energyImbalance: imbalance,
     radiation: radiationBudget(STARTING_SURFACE_TEMPERATURE_K + warming, imbalance),
     feedbacks: feedbackBreakdown(warming),
+    regions: regionClimates(warming),
     history: state.history,
   };
 }

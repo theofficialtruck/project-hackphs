@@ -24,6 +24,12 @@ export default defineConfig([
       ],
     },
   },
+  {
+    files: ['scripts/**/*.mjs'],
+    languageOptions: {
+      globals: { console: 'readonly', fetch: 'readonly', process: 'readonly' },
+    },
+  },
   // Must be last: turns off style rules that would fight with Prettier.
   prettier,
 ]);

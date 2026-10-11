@@ -60,6 +60,10 @@ a {
   margin-left: 52px;
 }
 
+#country-text {
+  white-space: pre-line;
+}
+
 #news {
   white-space: pre-wrap;
   font-size: 12px;

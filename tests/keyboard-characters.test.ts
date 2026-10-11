@@ -3,6 +3,7 @@
 import { describe, expect, it } from 'vitest';
 import { FACTORS, describeRequirement } from '../src/core/factors';
 import { GAMEPLAY } from '../src/core/gameplay';
+import { REGIONAL_PATTERNS, countryNames, regionClimates } from '../src/core/regions';
 import { SCIENCE } from '../src/core/science';
 
 const files = import.meta.glob(['/src/**/*.{ts,css,html}', '/*.html', '/README.md'], {
@@ -33,6 +34,10 @@ describe('text shown to players', () => {
     ...Object.values(SCIENCE).flatMap((c) => [c.unit, c.description]),
     ...Object.values(GAMEPLAY).flatMap((c) => [c.unit, c.description]),
     ...FACTORS.flatMap((f) => [f.name, f.description, ...f.requires.map(describeRequirement)]),
+    REGIONAL_PATTERNS.unit,
+    REGIONAL_PATTERNS.description,
+    ...regionClimates(1).map((r) => r.name),
+    ...countryNames(),
   ];
 
   it.each(playerText)('"%s" has no unit notation like m^2', (text) => {

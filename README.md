@@ -25,18 +25,19 @@ the numbers page. Both are temporary pages for testing the engine; the final UI 
 
 ## Scripts
 
-| Command                | What it does                                                    |
-| ---------------------- | --------------------------------------------------------------- |
-| `npm run dev`          | Start the Vite dev server with live reload                      |
-| `npm run build`        | Type check, then build the site into `dist/`                    |
-| `npm run preview`      | Serve the built `dist/` folder locally                          |
-| `npm test`             | Run all tests once (Vitest)                                     |
-| `npm run test:watch`   | Re run tests whenever a file changes                            |
-| `npm run typecheck`    | Type check the project, plus a stricter check of the engine     |
-| `npm run lint`         | Lint with ESLint                                                |
-| `npm run format`       | Format all files with Prettier                                  |
-| `npm run format:check` | Check formatting without changing files                         |
-| `npm run check`        | Typecheck + lint + format check + tests (run before committing) |
+| Command                 | What it does                                                      |
+| ----------------------- | ----------------------------------------------------------------- |
+| `npm run dev`           | Start the Vite dev server with live reload                        |
+| `npm run build`         | Type check, then build the site into `dist/`                      |
+| `npm run preview`       | Serve the built `dist/` folder locally                            |
+| `npm test`              | Run all tests once (Vitest)                                       |
+| `npm run test:watch`    | Re run tests whenever a file changes                              |
+| `npm run typecheck`     | Type check the project, plus a stricter check of the engine       |
+| `npm run lint`          | Lint with ESLint                                                  |
+| `npm run format`        | Format all files with Prettier                                    |
+| `npm run format:check`  | Check formatting without changing files                           |
+| `npm run check`         | Typecheck + lint + format check + tests (run before committing)   |
+| `npm run build:regions` | Download IPCC Atlas data and rebuild the per country climate file |
 
 ## Project structure
 
@@ -46,9 +47,16 @@ src/dev-ui/    Temporary pages for testing the engine
 index.html     Globe page (temporary, replaced by the final UI)
 dev.html       Numbers page (temporary)
 tests/         Project wide tests (for example: keyboard characters only)
+scripts/       Data build scripts
 ```
+
+`src/core/regional-climate.generated.ts` is produced by `npm run build:regions`. The raw download
+(about 65 MB) is cached in `data/ipcc-atlas/`, which is not committed.
 
 ## Credits
 
 - Country shapes: Natural Earth via the `world-atlas` package.
+- Regional climate data: IPCC WGI AR6 Atlas repository (Iturbide et al., 2022), CMIP6 regional
+  averages, licensed CC BY 4.0, <https://github.com/IPCC-WG1/Atlas>. Reference regions: Iturbide et
+  al. (2020).
 - Scientific sources are listed next to each value in `src/core/science/constants.ts`.

@@ -21,4 +21,13 @@ export const GAMEPLAY = {
       'Game design choice: lets players reach a very high emissions world without unlimited growth.',
     kind: 'gameplay',
   },
+  rainfallAgreement: {
+    value: 0.8,
+    unit: 'fraction of climate models',
+    description:
+      'A region is only called wetter or drier when at least this share of climate models agree.',
+    source:
+      'Presentation choice: avoids claiming a rainfall direction when climate models disagree.',
+    kind: 'gameplay',
+  },
 } as const satisfies Record<string, Sourced<number>>;

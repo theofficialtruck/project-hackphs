@@ -1,22 +1,31 @@
-// Temporary globe page: shows the game on a 3D globe so it can be played and tested.
-// The final UI (built by the UI developer) replaces this page.
+// Temporary globe page: each country is coloured by its own warming and can be clicked for
+// details. The final UI (built by the UI developer) replaces this page.
 import Globe from 'globe.gl';
 import type { MeshPhongMaterial } from 'three';
 import { feature } from 'topojson-client';
 import type { GeometryCollection, Topology } from 'topojson-specification';
 import countriesUrl from 'world-atlas/countries-110m.json?url';
-import { createGame, type GameEvent, type GameView } from '../core';
+import {
+  REGIONAL_PATTERNS,
+  countryClimate,
+  createGame,
+  plainCountryName,
+  type CountryClimate,
+  type GameEvent,
+  type GameView,
+} from '../core';
 import { SPEEDS, createFactorList, describeEvent, element, fmt, startClock } from './shared';
 import './globe-page.css';
 
 type CountryTopology = Topology<{ countries: GeometryCollection<{ name: string }> }>;
+type CountryShape = { properties: { name: string } };
 
-/** Display choice only: colour of the land for a given global warming in degrees C. */
 const COLOR_STOPS: readonly (readonly [number, readonly [number, number, number]])[] = [
   [0, [46, 125, 91]],
   [1.5, [224, 195, 65]],
   [3, [224, 123, 57]],
-  [4, [192, 57, 43]],
+  [4.5, [192, 57, 43]],
+  [6, [110, 20, 30]],
 ];
 
 function warmingColor(warming: number): string {
@@ -33,19 +42,14 @@ function warmingColor(warming: number): string {
   return 'rgb(46, 125, 91)';
 }
 
-/** Country names without accents, so all text uses normal keyboard characters. */
-function plainName(name: string): string {
-  // NFD splits letters like "o with a hat" into "o" plus an accent mark; \p{M} removes the marks.
-  return name.normalize('NFD').replace(/\p{M}/gu, '');
-}
+const nameOf = (d: object) => plainCountryName((d as CountryShape).properties.name);
 
 const game = createGame();
 let playing = false;
 let selectedCountry: string | null = null;
 let hovered: object | null = null;
-let shownColor = '';
+let coloredAtWarming = NaN;
 
-// ------------------------------------------------------------------- globe
 const globe = new Globe(element('#globe'))
   .backgroundColor('#000010')
   .showAtmosphere(true)
@@ -54,13 +58,13 @@ const globe = new Globe(element('#globe'))
   .polygonStrokeColor(() => '#10233b')
   .polygonAltitude(0.01)
   .polygonsTransitionDuration(0)
-  .polygonLabel((d) => plainName((d as { properties: { name: string } }).properties.name))
+  .polygonLabel(nameOf)
   .onPolygonHover((d) => {
     hovered = d;
     globe.polygonAltitude((p) => (p === hovered ? 0.03 : 0.01));
   })
   .onPolygonClick((d) => {
-    selectedCountry = plainName((d as { properties: { name: string } }).properties.name);
+    selectedCountry = nameOf(d);
     renderCountry(game.getView());
   });
 (globe.globeMaterial() as MeshPhongMaterial).color.set('#0b2545');
@@ -75,7 +79,6 @@ fetch(countriesUrl)
   })
   .catch((error: unknown) => console.error('Could not load country shapes', error));
 
-// ------------------------------------------------------------------- panels
 const playButton = element<HTMLButtonElement>('#play');
 const speedSelect = element<HTMLSelectElement>('#speed');
 speedSelect.innerHTML = SPEEDS.map(
@@ -104,15 +107,53 @@ element('#reset').addEventListener('click', () => {
 
 const updateFactors = createFactorList(element('#factors'), game, addNews);
 
+function describeRainfall(c: CountryClimate): string {
+  const amount = `${fmt(Math.abs(c.rainfallChangePercent), 1)}%`;
+  switch (c.rainfallTrend) {
+    case 'wetter':
+      return `${amount} more rain (most climate models agree)`;
+    case 'drier':
+      return `${amount} less rain (most climate models agree)`;
+    case 'uncertain':
+      return 'climate models disagree on whether it gets wetter or drier';
+  }
+}
+
+function countryLines(view: GameView, name: string): string[] {
+  const climate = countryClimate(name, view.regions);
+  const global = `Global average: +${fmt(view.surfaceWarming)} degrees C`;
+  if (!climate) {
+    return ['No regional climate data for this place, so it shows the global average.', global];
+  }
+  const regions = climate.regions
+    .map((r) => (climate.regions.length > 1 ? `${r.name} (${Math.round(r.share * 100)}%)` : r.name))
+    .join(', ');
+  return [
+    `Warming here: +${fmt(climate.warming)} degrees C`,
+    `Middle half of climate models: +${fmt(climate.warmingLow)} to +${fmt(climate.warmingHigh)}`,
+    global,
+    `Rainfall: ${describeRainfall(climate)}`,
+    `Climate region: ${regions}`,
+    `Source: IPCC AR6 Atlas, ${REGIONAL_PATTERNS.value} climate models`,
+  ];
+}
+
 function renderCountry(view: GameView): void {
   const panel = element('#country');
   panel.hidden = selectedCountry === null;
   if (selectedCountry === null) return;
   element('#country-name').textContent = selectedCountry;
-  element('#country-text').textContent =
-    `Global warming so far: +${fmt(view.surfaceWarming)} degrees C. ` +
-    'For now every country shows the global average. How this country is affected ' +
-    'is added in the next update.';
+  element('#country-text').textContent = countryLines(view, selectedCountry).join('\n');
+}
+
+function recolor(view: GameView): void {
+  const bucket = Math.round(view.surfaceWarming * 20) / 20;
+  if (bucket === coloredAtWarming) return;
+  coloredAtWarming = bucket;
+  globe.polygonCapColor((d) => {
+    const climate = countryClimate(nameOf(d), view.regions);
+    return warmingColor(climate ? climate.warming : view.surfaceWarming);
+  });
 }
 
 function render(view: GameView): void {
@@ -121,13 +162,7 @@ function render(view: GameView): void {
     `CO2 ${fmt(view.concentrations.co2, 0)} parts per million`;
   updateFactors(view);
   renderCountry(view);
-
-  // Only recolour when the colour visibly changes (recolouring every month is wasteful).
-  const color = warmingColor(Math.round(view.surfaceWarming * 20) / 20);
-  if (color !== shownColor) {
-    shownColor = color;
-    globe.polygonCapColor(() => color);
-  }
+  recolor(view);
 }
 
 game.subscribe(render);

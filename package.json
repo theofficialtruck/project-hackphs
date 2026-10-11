@@ -17,12 +17,14 @@
     "lint": "eslint .",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "check": "npm run typecheck && npm run lint && npm run format:check && npm test"
+    "check": "npm run typecheck && npm run lint && npm run format:check && npm test",
+    "build:regions": "node scripts/build-regional-climate.mjs"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "@types/three": "^0.186.0",
     "@types/topojson-client": "^3.1.5",
+    "d3-geo": "^3.1.1",
     "eslint": "^10.12.0",
     "eslint-config-prettier": "^10.1.8",
     "prettier": "^3.9.9",
