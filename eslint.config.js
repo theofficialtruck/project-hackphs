@@ -8,7 +8,6 @@ export default defineConfig([
   js.configs.recommended,
   tseslint.configs.recommended,
   {
-    // The engine must never depend on UI code (temporary or final).
     files: ['src/core/**/*.ts'],
     rules: {
       'no-restricted-imports': [

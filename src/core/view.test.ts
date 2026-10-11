@@ -9,7 +9,9 @@ describe('view', () => {
   it('shows a balanced planet at the start', () => {
     const view = selectView(createInitialState());
     expect(view.elapsedYears).toBe(0);
-    expect(view.emissions).toEqual({ co2: 0, ch4: 0, n2o: 0 });
+    expect(view.emissions).toEqual({ co2: 0, ch4: 0, n2o: 0, cfc: 0 });
+    expect(view.ozone.lossPercent).toBe(0);
+    expect(view.cards.every((c) => !c.shown)).toBe(true);
     expect(view.forcing.total).toBe(0);
     expect(view.surfaceWarming).toBe(0);
     expect(view.equilibriumWarming).toBe(0);

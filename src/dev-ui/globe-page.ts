@@ -1,5 +1,5 @@
-// Temporary globe page: each country is coloured by its own warming and can be clicked for
-// details. The final UI (built by the UI developer) replaces this page.
+// Temporary globe page: each country is colored by its own warming and can be clicked for
+// details.
 import Globe from 'globe.gl';
 import type { MeshPhongMaterial } from 'three';
 import { feature } from 'topojson-client';
@@ -7,12 +7,14 @@ import type { GeometryCollection, Topology } from 'topojson-specification';
 import countriesUrl from 'world-atlas/countries-110m.json?url';
 import {
   REGIONAL_PATTERNS,
+  SCENARIOS,
   countryClimate,
   createGame,
   plainCountryName,
   type CountryClimate,
   type GameEvent,
   type GameView,
+  type ScenarioId,
 } from '../core';
 import { SPEEDS, createFactorList, describeEvent, element, fmt, startClock } from './shared';
 import './globe-page.css';
@@ -100,12 +102,52 @@ playButton.addEventListener('click', () => {
   playButton.textContent = playing ? 'Pause' : 'Play';
 });
 element('#step').addEventListener('click', () => addNews(game.advance(1)));
-element('#reset').addEventListener('click', () => {
+function reset(): void {
   const result = game.dispatch({ type: 'reset' });
   if (result.ok) addNews(result.events);
+}
+element('#reset').addEventListener('click', reset);
+
+const scenarioSelect = element<HTMLSelectElement>('#scenario');
+scenarioSelect.innerHTML =
+  '<option value="">Jump to...</option>' +
+  SCENARIOS.map((s) => `<option value="${s.id}">${s.name}</option>`).join('');
+scenarioSelect.addEventListener('change', () => {
+  if (scenarioSelect.value) game.loadScenario(scenarioSelect.value as ScenarioId);
+  scenarioSelect.value = '';
+});
+element('#debrief-reset').addEventListener('click', reset);
+
+const previewBox = element<HTMLPreElement>('#preview');
+const updateFactors = createFactorList(element('#factors'), game, addNews, (text) => {
+  previewBox.textContent = text;
 });
 
-const updateFactors = createFactorList(element('#factors'), game, addNews);
+function renderGoals(view: GameView): void {
+  element('#milestones').innerHTML = view.milestones
+    .map((m) => `<div class="${m.reached ? 'done' : ''}">+${m.warming} degrees C: ${m.title}</div>`)
+    .join('');
+  element('#objectives').innerHTML = view.objectives
+    .map((o) => `<div class="${o.done ? 'done' : ''}">${o.text} (+${o.reward} dollars)</div>`)
+    .join('');
+}
+
+function renderDebrief(view: GameView): void {
+  const panel = element('#debrief');
+  panel.hidden = view.debrief === null;
+  if (!view.debrief) return;
+  const d = view.debrief;
+  element('#debrief-text').textContent = [
+    `In this game it took ${fmt(d.yearsPlayed, 0)} years to reach +${fmt(d.finalWarming)} degrees C.`,
+    `CO2 reached ${fmt(d.finalCo2, 0)} parts per million after ${fmt(d.totalCo2Emitted, 0)} billion tonnes of CO2 were released.`,
+    '',
+    'What science says about the real world:',
+    ...d.realWorld.map((f) => `- ${f.text} (${f.source})`),
+    '',
+    'Where this game is simpler than reality:',
+    ...d.gameSimplifications.map((s) => `- ${s}`),
+  ].join('\n');
+}
 
 function describeRainfall(c: CountryClimate): string {
   const amount = `${fmt(Math.abs(c.rainfallChangePercent), 1)}%`;
@@ -160,8 +202,19 @@ function render(view: GameView): void {
   element('#status').textContent =
     `Year ${fmt(view.elapsedYears, 0)} | Global warming +${fmt(view.surfaceWarming)} degrees C | ` +
     `CO2 ${fmt(view.concentrations.co2, 0)} parts per million`;
+  element('#ozone').textContent =
+    `Ozone layer: ${fmt(view.ozone.lossPercent, 1)}% thinner than normal ` +
+    `(real world today: about ${view.ozone.realWorldLossPercent}%)`;
+  element('#cards').innerHTML = view.cards
+    .filter((c) => c.shown)
+    .map((c) => `<div class="done" title="${c.text} (${c.source})">${c.title}</div>`)
+    .join('');
+  element('#money').textContent =
+    `${Math.floor(view.dollars)} dollars (earning ${Math.round(view.incomePerYear)} per year)`;
   updateFactors(view);
   renderCountry(view);
+  renderGoals(view);
+  renderDebrief(view);
   recolor(view);
 }
 

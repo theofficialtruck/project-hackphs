@@ -3,6 +3,7 @@
  * no functions) so it can be saved as JSON and compared in tests.
  */
 import { initialFactorStates, type FactorStates } from './factors';
+import { GAMEPLAY } from './gameplay';
 import {
   PREINDUSTRIAL_CLIMATE,
   PREINDUSTRIAL_GAS_CYCLE,
@@ -43,6 +44,16 @@ export interface GameState {
   readonly climate: ClimateState;
   /** One point per simulated year, oldest first, starting at year 0. */
   readonly history: readonly HistoryPoint[];
+  readonly dollars: number;
+  readonly progress: ProgressState;
+}
+
+export interface ProgressState {
+  readonly milestonesReached: readonly number[];
+  readonly objectivesCompleted: readonly string[];
+  readonly cardsShown: readonly string[];
+  readonly cumulativeCo2: number;
+  readonly endedAtYear: number | null;
 }
 
 export function historyPoint(
@@ -68,5 +79,13 @@ export function createInitialState(): GameState {
     gases: PREINDUSTRIAL_GAS_CYCLE,
     climate: PREINDUSTRIAL_CLIMATE,
     history: [historyPoint(0, PREINDUSTRIAL_GAS_CYCLE, PREINDUSTRIAL_CLIMATE)],
+    dollars: GAMEPLAY.startingDollars.value,
+    progress: {
+      milestonesReached: [],
+      objectivesCompleted: [],
+      cardsShown: [],
+      cumulativeCo2: 0,
+      endedAtYear: null,
+    },
   };
 }

@@ -1,9 +1,13 @@
 /**
- * The Game object is the interface a UI uses. It holds the current state, turns real
+ * The Game object is the main entry point to the engine. It holds the current state, turns real
  * time into simulation ticks, and tells subscribers when something changed.
  */
 import { applyAction, type ActionError, type GameAction } from './actions';
 import type { GameEvent } from './events';
+import type { FactorId } from './factors';
+import { previewUpgrade, type UpgradePreview } from './preview';
+import { loadGame, saveGame, type LoadResult } from './save';
+import { createScenario, type ScenarioId } from './scenarios';
 import { advanceTicks } from './simulation';
 import { TICKS_PER_YEAR, createInitialState, type GameState } from './state';
 import { selectView, type GameView } from './view';
@@ -22,13 +26,17 @@ export interface Game {
   getView(): GameView;
   getState(): GameState;
   /**
-   * Advances simulated time by `years` (may be fractional). The UI owns the clock, for
+   * Advances simulated time by `years` (may be fractional). The caller owns the clock, for
    * example: `game.advance(secondsSinceLastFrame * yearsPerSecond)`. The simulation moves in
    * whole months; leftover time is kept and used by the next call.
    */
   advance(years: number): readonly GameEvent[];
   dispatch(action: GameAction): DispatchResult;
   subscribe(listener: GameListener): () => void;
+  previewUpgrade(factor: FactorId): UpgradePreview | null;
+  save(): string;
+  load(text: string): LoadResult;
+  loadScenario(id: ScenarioId): void;
 }
 
 export function createGame(initialState: GameState = createInitialState()): Game {
@@ -79,6 +87,24 @@ export function createGame(initialState: GameState = createInitialState()): Game
       }
       update(result.state);
       return { ok: true, events: result.events };
+    },
+
+    previewUpgrade: (factor) => previewUpgrade(state, factor),
+
+    save: () => saveGame(state),
+
+    load(text) {
+      const result = loadGame(text);
+      if (result.ok) {
+        leftoverYears = 0;
+        update(result.state);
+      }
+      return result;
+    },
+
+    loadScenario(id) {
+      leftoverYears = 0;
+      update(createScenario(id));
     },
 
     subscribe(listener) {

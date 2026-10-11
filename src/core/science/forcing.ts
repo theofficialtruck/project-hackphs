@@ -7,7 +7,7 @@
  * multiplying by (1 + adjustment) converts that to effective radiative forcing (ERF), which
  * is what drives surface warming.
  */
-import { assertPositive } from './checks';
+import { assertFinite, assertPositive } from './checks';
 import { SCIENCE } from './constants';
 
 /** CO2 in ppm, CH4 and N2O in ppb. */
@@ -15,12 +15,14 @@ export interface GasConcentrations {
   readonly co2: number;
   readonly ch4: number;
   readonly n2o: number;
+  readonly cfc: number;
 }
 
 export const PREINDUSTRIAL_CONCENTRATIONS: GasConcentrations = {
   co2: SCIENCE.co2Preindustrial.value,
   ch4: SCIENCE.ch4Preindustrial.value,
   n2o: SCIENCE.n2oPreindustrial.value,
+  cfc: 0,
 };
 
 const { a1, b1, c1, d1, a2, b2, c2, d2, a3, b3, d3 } = SCIENCE.greenhouseForcingCoefficients.value;
@@ -85,6 +87,7 @@ export interface ForcingBreakdown {
   readonly co2: number;
   readonly ch4: number;
   readonly n2o: number;
+  readonly cfc: number;
   readonly total: number;
 }
 
@@ -105,6 +108,8 @@ export function effectiveRadiativeForcing(
   const n2o =
     n2oRadiativeForcing(current.co2, current.ch4, current.n2o, baseline.n2o) *
     (1 + SCIENCE.n2oForcingAdjustment.value);
+  assertFinite(current.cfc, 'cfc');
+  const cfc = SCIENCE.cfc12RadiativeEfficiency.value * (current.cfc - baseline.cfc);
 
-  return { co2, ch4, n2o, total: co2 + ch4 + n2o };
+  return { co2, ch4, n2o, cfc, total: co2 + ch4 + n2o + cfc };
 }
