@@ -50,20 +50,26 @@ interface Preview {
   affordable: boolean;
   years: number;
   extraEmissionsPerYear: Emissions;
-  concentrationChange: { co2: number; ch4: number; n2o: number; cfc?: number };
+  concentrationChange: { co2: number; ch4: number; n2o: number; cfc: number };
   forcingChange: number;
   warmingChange: number;
-  ozoneLossChange?: number;
+  ozoneLossChange: number;
 }
 interface ExtraView {
   dollars: number;
   incomePerYear: number;
   savingsCap: number;
+  realWorld: { warming: number; co2: number; ch4: number; n2o: number };
   endingWarming: number;
   ended: boolean;
   debrief: DebriefInfo | null;
   milestones: readonly MilestoneInfo[];
   objectives: readonly ObjectiveInfo[];
+  ozone: { cfcConcentration: number; lossPercent: number; realWorldLossPercent: number };
+  cards: readonly { id: string; title: string; text: string; source: string; shown: boolean }[];
+  emissions: Emissions;
+  concentrations: { co2: number; ch4: number; n2o: number; cfc: number };
+  forcing: { co2: number; ch4: number; n2o: number; cfc: number; total: number };
 }
 type AnyFactor = GameView['factors'][number] & { upgradeCost?: number | null };
 type AnyView = Omit<GameView, 'factors'> & { factors: readonly AnyFactor[] } & Partial<ExtraView>;
@@ -117,7 +123,7 @@ function describeEmissions(e: Emissions): string {
   if (e.co2 > 0) parts.push(`${fmt(e.co2, 1)} billion tonnes of CO2`);
   if (e.ch4 > 0) parts.push(`${fmt(e.ch4, 1)} million tonnes of methane`);
   if (e.n2o > 0) parts.push(`${fmt(e.n2o, 2)} million tonnes of nitrogen as nitrous oxide`);
-  if (e.cfc > 0) parts.push(`${fmt(e.cfc, 0)} thousand tonnes of CFCs`);
+  if (e.cfc > 0) parts.push(`${fmt(e.cfc, 1)} thousand tonnes of CFCs`);
   return parts.length > 0 ? parts.join(', ') : 'nothing';
 }
 
@@ -127,15 +133,15 @@ function describePreview(p: Preview): string {
   if (c.co2 > 0.05) gases.push(`CO2 +${fmt(c.co2, 1)} parts per million`);
   if (c.ch4 > 0.5) gases.push(`methane +${fmt(c.ch4, 0)} parts per billion`);
   if (c.n2o > 0.05) gases.push(`nitrous oxide +${fmt(c.n2o, 1)} parts per billion`);
-  if ((c.cfc ?? 0) > 0.0005) gases.push(`CFCs +${fmt((c.cfc ?? 0) * 1000, 0)} parts per trillion`);
+  if (c.cfc > 0.0005) gases.push(`CFCs +${fmt(c.cfc, 4)} parts per billion`);
   const lines = [
     `1. Releases ${describeEmissions(p.extraEmissionsPerYear)} more per year`,
     `2. After ${p.years} years: ${gases.join(', ') || 'no visible change in gas levels'}`,
     `3. Extra energy trapped: +${fmt(p.forcingChange, 3)} watts per square meter`,
     `4. Extra warming: +${fmt(p.warmingChange, 3)} degrees C`,
   ];
-  if ((p.ozoneLossChange ?? 0) > 0) {
-    lines.push(`Separately, the ozone layer gets ${fmt(p.ozoneLossChange ?? 0)}% thinner`);
+  if (p.ozoneLossChange > 0) {
+    lines.push(`Separately, the ozone layer gets ${fmt(p.ozoneLossChange, 2)}% thinner`);
   }
   return lines.join('\n');
 }
@@ -143,16 +149,13 @@ function describePreview(p: Preview): string {
 // ---- State -------------------------------------------------------------------------------
 const game = createGame();
 const getView = (): AnyView => game.getView() as AnyView;
-// Warming at which the game-over screen appears: the engine's ending warming.
-const UNINHABITABLE_WARMING = getView().endingWarming ?? 20;
-// The warming track always runs from 0 to the game-over warming.
-const TRACK_MAX = UNINHABITABLE_WARMING;
+// The track and UI use the engine's configured ending.
+const TRACK_MAX = getView().endingWarming;
 const MIN_SPEED = 0.5;
 const MAX_SPEED = 1000;
 let started = false;
 let playing = false;
 let speed = MIN_SPEED; // simulated years per real second, set by the slider
-let gameOver = false;
 let shownWarming = 0;
 let coloredAt = NaN;
 let selectedCountry: string | null = null;
@@ -184,6 +187,7 @@ const ocean = globe.globeMaterial() as MeshPhongMaterial;
 ocean.color.set('#0a1a6b');
 ocean.emissive.set('#06124a');
 ocean.shininess = 30;
+
 // Star field behind the globe.
 const starPositions: number[] = [];
 for (let i = 0; i < 2500; i++) {
@@ -225,7 +229,7 @@ $('#start').addEventListener('click', () => {
   started = true;
   playing = true;
   const intro = $('#intro');
-  intro.classList.add('leaving'); // fades out, then is removed
+  intro.classList.add('leaving');
   setTimeout(() => {
     intro.hidden = true;
   }, 600);
@@ -239,7 +243,6 @@ $('#start').addEventListener('click', () => {
 const playButton = $<HTMLButtonElement>('#play');
 const speedInput = $<HTMLInputElement>('#speed');
 speedInput.addEventListener('input', () => {
-  // Logarithmic: the slider moves evenly from 0.5 to 100 years per second.
   const raw = MIN_SPEED * (MAX_SPEED / MIN_SPEED) ** (Number(speedInput.value) / 100);
   speed = raw >= 10 ? Math.round(raw) : Math.round(raw * 10) / 10;
   paintClock();
@@ -258,8 +261,7 @@ const warmingEl = $('#warming');
 let shownText = '';
 let shownClip = '';
 let lastRecolor = 0;
-// The number and the bar both follow the smoothed value, once per frame. The bar is a fixed
-// gradient that is revealed with clip-path, so nothing is re-laid out while it grows.
+
 function paintWarming(now: number): void {
   const text = `+${fmt(shownWarming)}`;
   if (text !== shownText) {
@@ -272,7 +274,6 @@ function paintWarming(now: number): void {
     shownClip = clip;
     fillBar.style.clipPath = clip;
   }
-  // Repainting every country is expensive, so do it at most a few times per second.
   if (now - lastRecolor > 400) {
     lastRecolor = now;
     recolor(getView());
@@ -284,8 +285,8 @@ function frame(now: number): void {
   const seconds = Math.min((now - last) / 1000, 0.25);
   last = now;
   const view = getView();
-  if (started && playing && !gameOver && !view.ended) handle(game.advance(seconds * speed));
-  shownWarming += (view.surfaceWarming - shownWarming) * Math.min(1, seconds * 6); // smooth count up
+  if (started && playing && !view.ended) handle(game.advance(seconds * speed));
+  shownWarming += (view.surfaceWarming - shownWarming) * Math.min(1, seconds * 6);
   paintWarming(now);
   requestAnimationFrame(frame);
 }
@@ -364,90 +365,88 @@ function renderFactors(view: AnyView): void {
             ? `Next level: ${Math.floor(f.upgradeCost)} dollars`
             : '')
       : '';
-    const today =
-      f.presentDayLevel === null
-        ? 'Not used in the real world today.'
-        : `Level ${f.presentDayLevel} is what the real world releases today.`;
     detail.textContent = f.unlocked
-      ? `${today} ${f.description}`
+      ? `Releases ${describeEmissions(f.emissions)} per year. Each level adds ${describeEmissions(f.emissionsPerLevel)} per year. ` +
+        `${f.presentDayLevel === null ? 'Not used in the real world today. ' : `Level ${f.presentDayLevel} is what the real world releases today. `}${f.description}`
       : `Locked. ${f.requirements.map((r) => `[${r.met ? 'x' : ' '}] ${r.text}`).join('  ')}`;
   }
 }
 
-// ---- Events, updates feed, debrief -------------------------------------------------------
-const notesList = $('#notes');
-const MAX_NOTES = 40;
-
-function handle(events: readonly UiEvent[]): void {
-  for (const e of events) {
-    if (e.type === 'milestoneReached' || e.type === 'objectiveCompleted' || e.type === 'cardShown')
-      addNote(e);
-    if (e.type === 'gameEnded') {
-      renderDebrief(getView());
-      showGameOver();
-    }
-    if (e.type === 'gameReset') {
-      gameOver = false;
-      $('#gameover').hidden = true;
-      notesList.replaceChildren();
-      $('#notes-empty').hidden = false;
-      shownWarming = 0;
-      selectedCountry = null;
-      $('#debrief').hidden = true;
-    }
-  }
-}
-
-function noteContent(e: UiEvent): { kind: string; title: string; text: string; source: string } {
-  const view = getView();
-  if (e.type === 'milestoneReached') {
-    const m = (view.milestones ?? []).find((x) => x.warming === e.warming);
-    return {
-      kind: 'milestone',
-      title: `+${e.warming} degree${e.warming === 1 ? '' : 's'} C: ${m?.title ?? ''}`,
-      text: m?.text ?? '',
-      source: m?.source ?? '',
-    };
-  }
-  if (e.type === 'objectiveCompleted') {
-    const o = (view.objectives ?? []).find((x) => x.id === e.objective);
-    return {
-      kind: 'goal',
-      title: `Goal done: +${e.reward} dollars`,
-      text: `${o?.text ?? ''}. ${o?.lesson ?? ''}`,
-      source: '',
-    };
-  }
-  if (e.type === 'cardShown') {
-    const c = view.cards.find((x) => x.id === e.card);
-    return { kind: 'science', title: c?.title ?? '', text: c?.text ?? '', source: c?.source ?? '' };
-  }
-  return { kind: '', title: '', text: '', source: '' };
-}
-
-function addNote(e: UiEvent): void {
-  const { kind, title, text, source } = noteContent(e);
-  const item = document.createElement('li');
-  item.className = `note ${kind}`;
-  const head = document.createElement('div');
-  head.className = 'note-head';
-  head.textContent = `Year ${Math.floor(getView().elapsedYears)}`;
+// ---- Updates and ending ------------------------------------------------------------------
+function appendUpdate(
+  kind: 'milestone' | 'goal' | 'science',
+  title: string,
+  text: string,
+  source = '',
+): void {
+  const note = document.createElement('li');
+  note.className = `note ${kind}`;
   const heading = document.createElement('strong');
+  heading.className = 'note-title';
   heading.textContent = title;
   const body = document.createElement('p');
   body.textContent = text;
-  item.append(head, heading, body);
+  note.append(heading, body);
   if (source) {
-    const cite = document.createElement('p');
-    cite.className = 'dim note-source';
-    cite.textContent = `Source: ${source}`;
-    item.append(cite);
+    const citation = document.createElement('small');
+    citation.textContent = `Source: ${source}`;
+    note.append(citation);
   }
-  notesList.prepend(item);
-  while (notesList.children.length > MAX_NOTES) notesList.lastElementChild?.remove();
-  $('#notes-empty').hidden = true;
-  $('#feed').scrollTop = 0;
+  $('#notes').prepend(note);
 }
+
+function handle(events: readonly UiEvent[]): void {
+  const view = getView();
+  for (const event of events) {
+    if (event.type === 'milestoneReached') {
+      const milestone = view.milestones.find((item) => item.warming === event.warming);
+      if (milestone) {
+        appendUpdate(
+          'milestone',
+          `+${event.warming} degrees C: ${milestone.title}`,
+          milestone.text,
+          milestone.source,
+        );
+      }
+    } else if (event.type === 'objectiveCompleted') {
+      const objective = view.objectives.find((item) => item.id === event.objective);
+      if (objective) {
+        appendUpdate(
+          'goal',
+          `Goal complete: +${event.reward} dollars`,
+          `${objective.text} ${objective.lesson}`,
+        );
+      }
+    } else if (event.type === 'cardShown') {
+      const card = view.cards.find((item) => item.id === event.card);
+      if (card) {
+        const title =
+          card.id === 'ozone-not-warming'
+            ? `Myth / Reality: ${card.title.replace(/^Myth: /, '')}`
+            : card.title;
+        appendUpdate('science', title, card.text, card.source);
+      }
+    } else if (event.type === 'gameEnded') {
+      playing = false;
+      paintClock();
+      $('#gameover-message').textContent =
+        `Global warming has reached +${fmt(view.endingWarming, 0)} degrees C.`;
+      renderDebrief(view);
+      $('#gameover').hidden = false;
+    } else if (event.type === 'gameReset') {
+      $('#notes').replaceChildren();
+      $('#gameover').hidden = true;
+      $('#debrief').hidden = true;
+      shownWarming = 0;
+      selectedCountry = null;
+    }
+  }
+}
+
+$('#see-results').addEventListener('click', () => {
+  $('#gameover').hidden = true;
+  $('#debrief').hidden = false;
+});
 
 function renderDebrief(view: AnyView): void {
   const d = view.debrief;
@@ -462,6 +461,7 @@ function renderDebrief(view: AnyView): void {
     ${`<ul>${d.realWorld.map((r) => `<li>${r.text} <span class="dim">Source: ${r.source}</span></li>`).join('')}</ul>`}
     <h3>Where this game is simpler than reality</h3>${li(d.gameSimplifications)}
     <button id="again" class="primary">Play again</button></div>`;
+  box.hidden = true;
   $('#again').addEventListener('click', () => {
     const r = game.dispatch({ type: 'reset' });
     if (r.ok) handle(r.events);
@@ -538,20 +538,8 @@ track.insertAdjacentHTML(
       .join(''),
 );
 
-function showGameOver(): void {
-  gameOver = true;
-  playing = false;
-  paintClock();
-  $('#gameover').hidden = false;
-}
-$('#gameover-again').addEventListener('click', () => {
-  $('#gameover').hidden = true;
-  $('#debrief').hidden = false;
-});
-
 function render(view: AnyView): void {
   if (!started) return;
-  if (!gameOver && view.surfaceWarming >= UNINHABITABLE_WARMING) showGameOver();
   track.querySelectorAll<HTMLElement>('.tick').forEach((t) => {
     const w = Number(t.dataset.w);
     t.classList.toggle(

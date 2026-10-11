@@ -183,7 +183,7 @@ h2 {
   grid-column: 1 / -1;
   position: relative;
   height: 12px;
-  margin: 8px -16px 16px;
+  margin: 8px -16px 30px;
   background: #1a2740;
 }
 .fill {
@@ -223,10 +223,15 @@ h2 {
   background: var(--ink);
 }
 .tick.today {
+  z-index: 2;
+  width: 3px;
   background: var(--amber);
+  box-shadow: 0 0 8px var(--amber);
 }
 .mark.today {
+  top: 30px;
   color: var(--amber);
+  white-space: nowrap;
 }
 .speed {
   grid-column: 1 / -1;
@@ -285,6 +290,68 @@ h2 {
   border: 1px solid var(--line);
   border-radius: 10px;
 }
+#side {
+  position: fixed;
+  top: 170px;
+  right: 12px;
+  bottom: 12px;
+  z-index: 4;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 320px;
+  min-height: 0;
+}
+#feed,
+#country {
+  padding: 12px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+}
+#feed {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+}
+#feed h2 {
+  flex: none;
+}
+#notes {
+  overflow-y: auto;
+  margin: 0;
+  padding: 0 4px 0 0;
+  list-style: none;
+}
+.note {
+  margin: 8px 0;
+  padding: 8px 10px;
+  border-left: 3px solid var(--line);
+  background: #ffffff08;
+}
+.note.milestone {
+  border-left-color: #57b5ff;
+}
+.note.goal {
+  border-left-color: #7fd18b;
+}
+.note.science {
+  border-left-color: var(--amber);
+}
+.note-title {
+  display: block;
+}
+.note p {
+  margin: 4px 0;
+  font-size: 13px;
+}
+.note small {
+  color: var(--dim);
+  font-size: 11px;
+}
+
 .factor {
   padding: 8px 0;
   border-top: 1px solid var(--line);
@@ -332,69 +399,60 @@ summary {
   color: var(--dim);
 }
 
-#side {
-  position: fixed;
-  right: 12px;
-  top: 170px;
-  bottom: 12px;
-  width: 320px;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  pointer-events: none;
+#ozone-panel {
+  margin-top: 12px;
+  padding: 10px;
+  border: 1px solid #4c7181;
+  border-radius: 8px;
+  background: #071d27;
 }
-#side > * {
-  pointer-events: auto;
+#ozone-panel h3 {
+  margin: 0 0 4px;
+  font-size: 14px;
 }
-#feed {
-  flex: 0 1 auto;
-  min-height: 0;
-  overflow-y: auto;
-  padding: 12px;
-  background: var(--panel);
-  border: 1px solid var(--line);
-  border-radius: 10px;
+#ozone-copy {
+  margin: 0 0 8px;
+  color: var(--dim);
+  font-size: 12px;
 }
-#notes {
-  list-style: none;
-  margin: 0;
-  padding: 0;
+#ozone-gauge {
+  height: 9px;
+  margin-bottom: 5px;
+  overflow: hidden;
+  border-radius: 9px;
+  background: #193b45;
 }
-#notes-empty {
-  margin: 0;
-  font-size: 13px;
+#ozone-gauge-fill {
+  width: 0;
+  height: 100%;
+  background: linear-gradient(90deg, #64d8bc, #ffca68, #ff687f);
+  transition: width 180ms ease-out;
 }
-.note {
-  padding: 8px 0 8px 10px;
+#ozone-loss {
+  color: #c5f1e8;
+  font-size: 12px;
+}
+.science-note {
   border-top: 1px solid var(--line);
-  border-left: 3px solid var(--tone, var(--line));
+  padding: 8px 0;
+}
+.science-note h4 {
+  margin: 0 0 4px;
   font-size: 13px;
 }
-.note.milestone {
-  --tone: var(--hot);
+.science-note p {
+  margin: 0 0 4px;
+  font-size: 12px;
 }
-.note.goal {
-  --tone: var(--amber);
-}
-.note.science {
-  --tone: #3ad7ff;
-}
-.note-head {
-  font-size: 11px;
+.science-note small {
   color: var(--dim);
 }
-.note p {
-  margin: 4px 0 0;
-}
-.note-source {
-  font-size: 11.5px;
-}
 #country {
+  position: relative;
   flex: none;
-  padding: 12px;
-  background: var(--panel);
-  border: 1px solid var(--line);
-  border-radius: 10px;
+  width: auto;
+  max-height: 40vh;
+  overflow-y: auto;
 }
 #country-close {
   float: right;
@@ -410,10 +468,15 @@ summary {
 #gameover {
   position: fixed;
   inset: 0;
+  z-index: 20;
   display: grid;
   place-items: center;
   padding: 16px;
   background: #00001099;
+}
+#gameover {
+  z-index: 21;
+  background: #1a0000cc;
 }
 #debrief {
   align-items: start;
@@ -426,6 +489,13 @@ summary {
   background: #0a1224;
   border: 1px solid var(--amber);
   border-radius: 12px;
+}
+.gameover-body {
+  border-color: var(--hot);
+}
+.gameover-body h2 {
+  font-size: 26px;
+  color: var(--hot);
 }
 .debrief-body h3 {
   margin: 16px 0 6px;
@@ -449,29 +519,19 @@ summary {
     right: 12px;
   }
   #side {
-    top: auto;
-    left: 12px;
-    width: auto;
+    top: 155px;
     bottom: calc(42vh + 24px);
-    max-height: 28vh;
+    width: min(320px, 45vw);
+  }
+  #country {
+    max-height: 30vh;
   }
 }
+
 @media (prefers-reduced-motion: no-preference) {
   .factor {
     transition: background 0.8s;
   }
-}
-
-#gameover {
-  z-index: 10;
-  background: #1a0000cc;
-}
-.gameover-body {
-  border-color: var(--hot);
-}
-.gameover-body h2 {
-  font-size: 26px;
-  color: var(--hot);
 }
 
 @keyframes fade-in {
@@ -491,6 +551,7 @@ summary {
     transform: scale(1.05);
   }
 }
+
 @media (prefers-reduced-motion: no-preference) {
   /* Start page: one calm sequence, top to bottom. */
   .wordmark {
@@ -510,7 +571,8 @@ summary {
       fade-up 1s ease 2.1s both,
       pulse 1.8s ease-in-out 3.2s infinite;
   }
-  /* Game start: the HUD and the activity list fade in. */
+
+  /* Game start: the HUD, activity list, and Updates feed fade in. */
   #hud {
     animation: fade-in 1s ease both;
   }
@@ -521,6 +583,7 @@ summary {
   .note:first-child {
     animation: fade-up 0.6s ease both;
   }
+
   /* Game end: the screen fades in, then the text appears line by line. */
   #debrief,
   #gameover {

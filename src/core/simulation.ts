@@ -42,13 +42,15 @@ export function tick(state: GameState): StepResult<GameState> {
     ? appendHistory(state.history, historyPoint(nextTick / TICKS_PER_YEAR, gases, climate))
     : state.history;
 
+  const dollars = addIncome(state.dollars, state.factors, YEARS_PER_TICK);
+
   const unlocked = applyUnlocks({
     ...state,
     tick: nextTick,
     gases,
     climate,
     history,
-    dollars: addIncome(state.dollars, state.factors, YEARS_PER_TICK),
+    dollars,
     progress: {
       ...state.progress,
       cumulativeCo2: state.progress.cumulativeCo2 + emissions.co2 * YEARS_PER_TICK,

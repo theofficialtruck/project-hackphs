@@ -34,6 +34,7 @@ export function describePreview(p: UpgradePreview, name: string): string {
     gases.push(`nitrous oxide +${fmt(p.concentrationChange.n2o, 1)} parts per billion`);
   if (p.concentrationChange.cfc > 0.0005)
     gases.push(`CFCs +${fmt(p.concentrationChange.cfc * 1000, 0)} parts per trillion`);
+
   const lines = [
     `${name}: next level costs ${Math.round(p.cost)} dollars${p.affordable ? '' : ' (not enough money yet)'}`,
     `1. Releases ${describeEmissions(p.extraEmissionsPerYear)} more`,
@@ -128,7 +129,7 @@ export function createFactorList(
     const button = (event.target as HTMLElement).closest('button');
     if (!button?.dataset.id) return;
     const factor = button.dataset.id as FactorId;
-    const type = button.dataset.action === 'up' ? 'upgradeFactor' : 'downgradeFactor';
+    const type = button.dataset.action === 'up' ? 'upgradeFactor' : 'downgradeFactor';https://github.com/theofficialtruck/project-hackphs/pull/7/conflict?name=src%252Fdev-ui%252Fshared.ts&ancestor_oid=dcf2349be4a6f0a057ce27be3ae898fd484008b1&base_oid=6aa96c3aa965378c38eddd9ac43a57f08cd9705d&head_oid=3f7279ef5be25d131de88b72e74564cca076b219
     const result = game.dispatch({ type, factor });
     if (result.ok) onEvents(result.events);
     else if (result.error.code === 'NOT_ENOUGH_DOLLARS') onPreview('Not enough dollars yet.');
@@ -160,7 +161,7 @@ export function createFactorList(
         f.upgradeCost === null ? 'max level' : `next ${Math.round(f.upgradeCost)} dollars`;
       level.textContent = f.unlocked ? `level ${f.level} of ${f.maxLevel}, ${price}` : 'locked';
       detail.textContent = f.unlocked
-        ? `Releases ${describeEmissions(f.emissions)}.${f.presentDayLevel === null ? '' : ` Level ${f.presentDayLevel} is the real world today.`}`
+        ? `Releases ${describeEmissions(f.emissions)}.${f.presentDayLevel === null ? ' Not used in the real world today.' : ` Level ${f.presentDayLevel} is the real world today.`}`
         : `Needs: ${f.requirements.map((r) => `${r.text}${r.met ? ' (done)' : ''}`).join(', ')}`;
     }
   };

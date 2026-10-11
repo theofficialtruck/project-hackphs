@@ -4,9 +4,46 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Numbers - Ozone Inc.</title>
+    <style>
+      body { margin: 24px auto; max-width: 920px; padding: 0 18px; background: #0b1220; color: #e8eef5; font: 15px/1.5 system-ui, sans-serif; }
+      button, select { padding: 5px 9px; }
+      section, .controls { margin: 18px 0; padding: 14px; background: #111e30; border: 1px solid #34445b; border-radius: 8px; }
+      .factor { margin: 8px 0; padding: 8px 0; border-top: 1px solid #34445b; }
+      .factor-head { display: flex; align-items: center; gap: 8px; }
+      .factor-head strong { flex: 1; }
+      .factor-detail { margin-left: 60px; color: #b4c3d6; font-size: 13px; }
+      .factor.locked { opacity: .55; }
+      .preview, pre { white-space: pre-wrap; }
+      #news { max-height: 220px; overflow: auto; }
+      .myth-card { border-left: 4px solid #f0bd63; padding-left: 10px; }
+    </style>
   </head>
   <body>
-    <div id="app"></div>
+    <main id="app">
+      <h1>Ozone Inc. — numbers page</h1>
+      <p id="status" aria-live="polite"></p>
+      <p><strong id="money"></strong> <span id="income"></span></p>
+      <p id="ozone"></p>
+      <div class="controls">
+        <button id="play">Play</button>
+        <button id="step">Advance one year</button>
+        <button id="reset">Reset</button>
+        <label>Speed <select id="speed"></select></label>
+      </div>
+      <section>
+        <h2>Activities</h2>
+        <div id="factors"></div>
+        <pre id="preview">Hover over + to preview an upgrade.</pre>
+      </section>
+      <section>
+        <h2>Science cards</h2>
+        <div id="cards"></div>
+      </section>
+      <section>
+        <h2>Recent events</h2>
+        <pre id="news" aria-live="polite"></pre>
+      </section>
+    </main>
     <script type="module" src="/src/dev-ui/numbers-page.ts"></script>
   </body>
 </html>

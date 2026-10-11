@@ -137,8 +137,8 @@ export function createDebrief(state: GameState): Debrief | null {
     gameSimplifications: [
       'The game starts from 1750 conditions and how fast years pass is a game choice.',
       'Pollution particles (aerosols) that hide some real world warming are left out.',
-      'Warming far above 5 degrees C goes past what the IPCC assesses for this century, and the simple climate model is less reliable there.',
       'Country values come from large IPCC regions, not from each country separately.',
+      'The game follows warming far above 5 degrees C, beyond the IPCC scenario range used for most projections.',
     ],
   };
 }
