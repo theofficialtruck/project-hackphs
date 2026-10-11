@@ -11,7 +11,7 @@
     <section id="intro">
       <div class="intro-top">
         <h1 class="wordmark">Ozone Inc.</h1>
-        <p class="goal">You run Ozone Inc. Your goal: warm the Earth to +4 degrees C.</p>
+        <p class="goal">You run Ozone Inc. Your goal: warm the Earth to +20 degrees C.</p>
       </div>
       <div class="intro-bottom">
         <div class="facts" id="hook">
@@ -63,19 +63,17 @@
       </details>
     </aside>
 
-    <aside id="country" hidden>
-      <button id="country-close" aria-label="Close">x</button>
-      <h2 id="country-name"></h2>
-      <p id="country-text"></p>
-    </aside>
-
-    <div id="card" hidden>
-      <div class="card-body">
-        <h2 id="card-title"></h2>
-        <p id="card-text"></p>
-        <p id="card-source" class="dim"></p>
-        <button id="card-ok" class="primary">Continue</button>
-      </div>
+    <div id="side" hidden>
+      <aside id="feed">
+        <h2>Updates</h2>
+        <ol id="notes" aria-live="polite"></ol>
+        <p id="notes-empty" class="dim">News about your planet will appear here as it changes.</p>
+      </aside>
+      <aside id="country" hidden>
+        <button id="country-close" aria-label="Close">x</button>
+        <h2 id="country-name"></h2>
+        <p id="country-text"></p>
+      </aside>
     </div>
 
     <div id="fx" aria-hidden="true"></div>
@@ -85,19 +83,16 @@
         <h2 id="gameover-title">Game over: Earth is no longer livable</h2>
         <p>Global warming has reached +20 degrees C.</p>
         <p>
-          At this temperature, heat and humidity together would be too much for the human body to
-          cool itself in almost every place on Earth. Earth would no longer be habitable for humans.
-        </p>
-        <p>
-          Researchers estimate that about 7 degrees C of warming would first push parts of the
-          tropics past the limit, and about 11 to 12 degrees C would do so for most of today's
-          population.
+          Researchers estimate that at about 7 degrees C of warming, heat and humidity together
+          would start to pass the limit the human body can survive in some regions. At about 11 to
+          12 degrees C, those regions would cover the places where most people live today. Earth is
+          now far past both limits.
         </p>
         <p class="dim">
           Source: Sherwood and Huber, 2010, "An adaptability limit to climate change due to heat
           stress", Proceedings of the National Academy of Sciences.
         </p>
-        <button id="gameover-again" class="primary">Play again</button>
+        <button id="gameover-again" class="primary">See your results</button>
       </div>
     </div>
     <script type="module" src="/src/dev-ui/main.ts"></script>

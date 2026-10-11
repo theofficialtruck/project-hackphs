@@ -6,7 +6,7 @@
  */
 
 /** Version of the engine interface. Bumped when the interface changes. */
-export const ENGINE_VERSION = '0.8.0';
+export const ENGINE_VERSION = '0.9.0';
 
 export { createGame, MAX_YEARS_PER_ADVANCE } from './game';
 export type { DispatchResult, Game, GameListener } from './game';

@@ -25,7 +25,7 @@ describe('scenarios', () => {
   it('can be loaded into a running game', () => {
     const game = createGame();
     game.loadScenario('nearEnd');
-    expect(game.getView().surfaceWarming).toBeGreaterThan(3.7);
+    expect(game.getView().surfaceWarming).toBeGreaterThan(19.4);
     expect(game.getView().ended).toBe(false);
   });
 

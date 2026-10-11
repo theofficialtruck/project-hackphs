@@ -11,11 +11,11 @@ function withWarming(warming: number, state: GameState = createInitialState()): 
 }
 
 describe('milestones', () => {
-  it('are in increasing order and end at the ending warming', () => {
+  it('are in increasing order, below the ending warming, and sourced', () => {
     const levels = MILESTONES.map((m) => m.warming);
     expect([...levels].sort((a, b) => a - b)).toEqual(levels);
-    expect(levels.at(-1)).toBe(GAMEPLAY.endingWarming.value);
-    for (const m of MILESTONES) expect(m.source).toContain('IPCC AR6');
+    expect(levels.at(-1)).toBeLessThan(GAMEPLAY.endingWarming.value);
+    for (const m of MILESTONES) expect(m.source).toMatch(/IPCC AR6|Sherwood and Huber/);
   });
 
   it('fire once each, in order, as warming rises', () => {

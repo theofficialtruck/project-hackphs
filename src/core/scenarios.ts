@@ -7,7 +7,7 @@ import { GAMEPLAY } from './gameplay';
 import { advanceTicks } from './simulation';
 import { TICKS_PER_YEAR, createInitialState, type GameState } from './state';
 
-export type ScenarioId = 'start' | 'oneDegree' | 'twoDegrees' | 'nearEnd';
+export type ScenarioId = 'start' | 'oneDegree' | 'twoDegrees' | 'fourDegrees' | 'nearEnd';
 
 export interface Scenario {
   readonly id: ScenarioId;
@@ -19,10 +19,11 @@ export const SCENARIOS: readonly Scenario[] = [
   { id: 'start', name: 'Start of the game', warming: 0 },
   { id: 'oneDegree', name: 'About +1 degree C', warming: 1 },
   { id: 'twoDegrees', name: 'About +2 degrees C', warming: 2 },
-  { id: 'nearEnd', name: 'Close to the ending', warming: 3.8 },
+  { id: 'fourDegrees', name: 'About +4 degrees C', warming: 4 },
+  { id: 'nearEnd', name: 'Close to the ending', warming: 19.5 },
 ];
 
-const MAX_YEARS = 500;
+const MAX_YEARS = 10000;
 
 export function buyCheapestUpgrades(state: GameState): GameState {
   let current = state;
