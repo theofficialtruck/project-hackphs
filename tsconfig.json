@@ -1,5 +1,5 @@
 {
-  // Type-checking settings for the whole project (engine, dev UI, tests, config).
+  // Type checking settings for the whole project (engine, pages, tests, config).
   // Vite does the actual compiling; `tsc` only checks types (noEmit).
   "compilerOptions": {
     "target": "ES2022",

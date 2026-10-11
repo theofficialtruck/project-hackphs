@@ -25,6 +25,12 @@ const GLOBAL_METHANE_BUDGET_2020 =
   'Saunois et al. (2020), The Global Methane Budget 2000-2017, Earth Syst. Sci. Data 12, 1561, ' +
   'bottom up estimates for 2008-2017, https://essd.copernicus.org/articles/12/1561/2020/';
 
+const WMO_OZONE_2022 =
+  'WMO/UNEP Scientific Assessment of Ozone Depletion 2022, Twenty Questions and Answers About the Ozone Layer, ' +
+  'https://csl.noaa.gov/assessments/ozone/2022/twentyquestions/';
+const AR6_METRICS_TABLE =
+  'IPCC AR6 WG1 Table 7.SM.7 data, https://github.com/IPCC-WG1/Chapter-7/blob/main/data_output/7sm/metrics_supplement_cleaned.csv';
+
 const WATTS_PER_SQUARE_METER_PER_DEGREE = 'watts per square meter per degree C';
 
 export const SCIENCE = {
@@ -289,6 +295,53 @@ export const SCIENCE = {
       'Joos et al. (2013), Atmos. Chem. Phys. 13, 2793-2825, Table 5 (multi-model mean, 100 GtC pulse), ' +
       'https://acp.copernicus.org/articles/13/2793/2013/',
     kind: 'model-parameter',
+  },
+
+  // ------------------------------------------------------------- CFCs and ozone
+  cfc12PerturbationLifetime: {
+    value: 102,
+    unit: 'years',
+    description:
+      'Time for extra CFC-12 to shrink to about 37% of its size. CFCs last about 100 years.',
+    source: `${AR6_METRICS_TABLE}; matches ${WMO_OZONE_2022}, Q15 ("about 50 and 100 years")`,
+    kind: 'assessed',
+  },
+  cfc12RadiativeEfficiency: {
+    value: 0.358,
+    unit: 'watts per square meter per part per billion',
+    description:
+      'Extra energy trapped by each part per billion of CFC-12, thousands of times more than CO2.',
+    source: `${AR6_METRICS_TABLE}; reproduces the 2019 CFC-12 forcing in ${AR6_CH7}, Table 7.5`,
+    kind: 'assessed',
+  },
+  cfc12Concentration2019: {
+    value: 0.5031,
+    unit: 'parts per billion',
+    description: 'CFC-12 in the air in 2019, after decades of use in fridges and air conditioners.',
+    source: `${AR6_CH7}, Table 7.5 (503.1 parts per trillion)`,
+    kind: 'measured',
+  },
+  ozoneLossToday: {
+    value: 2.5,
+    unit: 'percent',
+    description:
+      'How much thinner the global ozone layer has been since 2010 than in 1964 to 1980.',
+    source: `${WMO_OZONE_2022}, Q12 ("about 2 to 3% below the 1964-1980 average")`,
+    kind: 'measured',
+  },
+  cfc12MolarMass: {
+    value: 120.91,
+    unit: 'grams per mole',
+    description: 'Mass of one mole of CFC-12 (CCl2F2).',
+    source: 'IUPAC standard atomic weights: C 12.011, Cl 35.45, F 18.998',
+    kind: 'measured',
+  },
+  methaneMolarMass: {
+    value: 16.043,
+    unit: 'grams per mole',
+    description: 'Mass of one mole of methane (CH4).',
+    source: 'IUPAC standard atomic weights: C 12.011, H 1.008',
+    kind: 'measured',
   },
 
   // ------------------------------------------------ present day emissions by sector

@@ -69,6 +69,7 @@ export const GAMEPLAY = {
       naturalGas: 260,
       landfills: 200,
       fertilizer: 300,
+      refrigerants: 150,
     },
     unit: 'dollars',
     description: 'Price of the first level of each activity.',
@@ -81,6 +82,14 @@ export const GAMEPLAY = {
     description: 'The game ends when global warming reaches this level.',
     source:
       'Game design choice: close to the middle of the IPCC very high emissions range for 2081-2100 (3.3 to 5.7 degrees C).',
+    kind: 'gameplay',
+  },
+  cfcPerLevel: {
+    value: 30,
+    unit: 'thousand tonnes of CFCs per year',
+    description: 'CFCs released by each level of refrigerants.',
+    source:
+      "Game design choice: CFCs are mostly banned today, so there is no real present day amount. At level 10 the CFC level reaches about today's real CFC-12 level within 50 years.",
     kind: 'gameplay',
   },
   previewYears: {

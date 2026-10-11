@@ -3,6 +3,7 @@
  * factor levels -> emissions -> gas concentrations -> radiative forcing -> temperature.
  */
 import { incomePerYear } from './economy';
+import { applyCards } from './education';
 import type { GameEvent, StepResult } from './events';
 import { totalEmissions } from './factors';
 import { applyProgression } from './progression';
@@ -54,7 +55,9 @@ export function tick(state: GameState): StepResult<GameState> {
     },
   });
   const progressed = applyProgression(unlocked.state);
-  return { state: progressed.state, events: [...unlocked.events, ...progressed.events] };
+  const events = [...unlocked.events, ...progressed.events];
+  const carded = applyCards(progressed.state, events);
+  return { state: carded.state, events: [...events, ...carded.events] };
 }
 
 /** Advances the simulation by a whole number of ticks. */

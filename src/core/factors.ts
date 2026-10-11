@@ -1,7 +1,8 @@
 /**
- * Environmental factors: real human activities the player can expand. Each level adds a
- * fixed share of the activity's real present day emissions (see science/constants.ts).
- * Level GAMEPLAY.presentDayLevel equals today's real world emissions.
+ * Environmental factors: real human activities the player can expand. For most of them each
+ * level adds a fixed share of the activity's real present day emissions (see
+ * science/constants.ts), and level GAMEPLAY.presentDayLevel equals today's real world emissions.
+ * Refrigerants (CFCs) are mostly banned today, so their amount per level is a gameplay value.
  */
 import { GAMEPLAY } from './gameplay';
 import { NO_EMISSIONS, SCIENCE, type Emissions } from './science';
@@ -15,7 +16,8 @@ export type FactorId =
   | 'livestock'
   | 'rice'
   | 'fertilizer'
-  | 'landfills';
+  | 'landfills'
+  | 'refrigerants';
 
 export type UnlockRequirement =
   | { readonly type: 'factorLevel'; readonly factor: FactorId; readonly level: number }
@@ -25,12 +27,31 @@ export interface FactorDefinition {
   readonly id: FactorId;
   readonly name: string;
   readonly description: string;
-  readonly presentDay: Emissions;
+  readonly presentDay: Emissions | null;
+  readonly perLevel: Emissions;
   readonly requires: readonly UnlockRequirement[];
 }
 
 const FOSSIL_CO2 = SCIENCE.fossilCo2Emissions.value;
 const FOSSIL_SHARE = SCIENCE.fossilCo2Shares.value;
+
+function scale(emissions: Emissions, factor: number): Emissions {
+  return {
+    co2: emissions.co2 * factor,
+    ch4: emissions.ch4 * factor,
+    n2o: emissions.n2o * factor,
+    cfc: emissions.cfc * factor,
+  };
+}
+
+function add(a: Emissions, b: Emissions): Emissions {
+  return { co2: a.co2 + b.co2, ch4: a.ch4 + b.ch4, n2o: a.n2o + b.n2o, cfc: a.cfc + b.cfc };
+}
+
+function realWorld(emissions: Partial<Emissions>) {
+  const presentDay = { ...NO_EMISSIONS, ...emissions };
+  return { presentDay, perLevel: scale(presentDay, 1 / GAMEPLAY.presentDayLevel.value) };
+}
 
 export const FACTORS: readonly FactorDefinition[] = [
   {
@@ -38,11 +59,7 @@ export const FACTORS: readonly FactorDefinition[] = [
     name: 'Coal power',
     description:
       'Burning coal for electricity and industry releases CO2. Coal mines also leak methane.',
-    presentDay: {
-      co2: FOSSIL_CO2 * FOSSIL_SHARE.coal,
-      ch4: SCIENCE.coalMiningMethane.value,
-      n2o: 0,
-    },
+    ...realWorld({ co2: FOSSIL_CO2 * FOSSIL_SHARE.coal, ch4: SCIENCE.coalMiningMethane.value }),
     requires: [],
   },
   {
@@ -51,11 +68,7 @@ export const FACTORS: readonly FactorDefinition[] = [
     description:
       'Clearing forests for farms and towns releases the carbon stored in trees and soil as CO2.',
     // Real data covers all land use change, of which clearing forests is the main part.
-    presentDay: {
-      co2: SCIENCE.landUseCo2Emissions.value * SCIENCE.co2PerCarbon.value,
-      ch4: 0,
-      n2o: 0,
-    },
+    ...realWorld({ co2: SCIENCE.landUseCo2Emissions.value * SCIENCE.co2PerCarbon.value }),
     requires: [],
   },
   {
@@ -63,7 +76,7 @@ export const FACTORS: readonly FactorDefinition[] = [
     name: 'Livestock',
     description:
       'Cows and other farm animals release methane as they digest food, and their manure releases more.',
-    presentDay: { co2: 0, ch4: SCIENCE.livestockMethane.value, n2o: 0 },
+    ...realWorld({ ch4: SCIENCE.livestockMethane.value }),
     requires: [],
   },
   {
@@ -71,7 +84,7 @@ export const FACTORS: readonly FactorDefinition[] = [
     name: 'Rice farming',
     description:
       'Flooded rice fields have little oxygen in the soil, so microbes there produce methane.',
-    presentDay: { co2: 0, ch4: SCIENCE.riceMethane.value, n2o: 0 },
+    ...realWorld({ ch4: SCIENCE.riceMethane.value }),
     requires: [{ type: 'factorLevel', factor: 'livestock', level: 2 }],
   },
   {
@@ -79,14 +92,14 @@ export const FACTORS: readonly FactorDefinition[] = [
     name: 'Cement',
     description:
       'Making cement means heating limestone, which gives off CO2 even before any fuel is burned.',
-    presentDay: { co2: FOSSIL_CO2 * FOSSIL_SHARE.cement, ch4: 0, n2o: 0 },
+    ...realWorld({ co2: FOSSIL_CO2 * FOSSIL_SHARE.cement }),
     requires: [{ type: 'factorLevel', factor: 'coal', level: 2 }],
   },
   {
     id: 'oil',
     name: 'Oil and transport',
     description: 'Gasoline and diesel burned by cars, trucks, ships and planes release CO2.',
-    presentDay: { co2: FOSSIL_CO2 * FOSSIL_SHARE.oil, ch4: 0, n2o: 0 },
+    ...realWorld({ co2: FOSSIL_CO2 * FOSSIL_SHARE.oil }),
     requires: [{ type: 'factorLevel', factor: 'coal', level: 3 }],
   },
   {
@@ -95,18 +108,17 @@ export const FACTORS: readonly FactorDefinition[] = [
     description:
       'Burning natural gas releases CO2, and gas wells and pipelines leak methane, a powerful greenhouse gas.',
     // Simplification: all oil and gas methane leaks are counted here.
-    presentDay: {
+    ...realWorld({
       co2: FOSSIL_CO2 * FOSSIL_SHARE.naturalGas,
       ch4: SCIENCE.oilAndGasMethane.value,
-      n2o: 0,
-    },
+    }),
     requires: [{ type: 'factorLevel', factor: 'oil', level: 2 }],
   },
   {
     id: 'landfills',
     name: 'Landfills',
     description: 'Food and paper rotting in landfills without oxygen produce methane.',
-    presentDay: { co2: 0, ch4: SCIENCE.wasteMethane.value, n2o: 0 },
+    ...realWorld({ ch4: SCIENCE.wasteMethane.value }),
     requires: [{ type: 'factorLevel', factor: 'oil', level: 2 }],
   },
   {
@@ -114,11 +126,20 @@ export const FACTORS: readonly FactorDefinition[] = [
     name: 'Fertilizer',
     description:
       'Nitrogen fertilizer and manure on fields feed soil microbes that release nitrous oxide.',
-    presentDay: { co2: 0, ch4: 0, n2o: SCIENCE.agricultureNitrousOxide.value },
+    ...realWorld({ n2o: SCIENCE.agricultureNitrousOxide.value }),
     requires: [
       { type: 'factorLevel', factor: 'rice', level: 2 },
       { type: 'warming', atLeast: 0.3 },
     ],
+  },
+  {
+    id: 'refrigerants',
+    name: 'CFC refrigerants',
+    description:
+      'CFCs were once used in almost all fridges and air conditioners. They destroy the ozone layer and also trap heat as greenhouse gases.',
+    presentDay: null,
+    perLevel: { ...NO_EMISSIONS, cfc: GAMEPLAY.cfcPerLevel.value },
+    requires: [{ type: 'factorLevel', factor: 'coal', level: 2 }],
   },
 ];
 
@@ -148,17 +169,9 @@ export function initialFactorStates(): FactorStates {
   return Object.fromEntries(entries) as FactorStates;
 }
 
-function scale(emissions: Emissions, factor: number): Emissions {
-  return { co2: emissions.co2 * factor, ch4: emissions.ch4 * factor, n2o: emissions.n2o * factor };
-}
-
-function add(a: Emissions, b: Emissions): Emissions {
-  return { co2: a.co2 + b.co2, ch4: a.ch4 + b.ch4, n2o: a.n2o + b.n2o };
-}
-
 /** Emissions one level of a factor adds. */
 export function emissionsPerLevel(factor: FactorDefinition): Emissions {
-  return scale(factor.presentDay, 1 / GAMEPLAY.presentDayLevel.value);
+  return factor.perLevel;
 }
 
 /** Emissions of a factor at a given level. */

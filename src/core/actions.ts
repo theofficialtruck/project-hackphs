@@ -1,8 +1,9 @@
 /**
- * Actions are requests to change the game (from the player or the UI). Expected problems,
+ * Actions are requests to change the game (from the player). Expected problems,
  * such as invalid input, are returned as an error result instead of being thrown.
  */
 import { upgradeCost } from './economy';
+import { applyCards } from './education';
 import type { GameEvent } from './events';
 import { isFactorId, type FactorId } from './factors';
 import { GAMEPLAY } from './gameplay';
@@ -39,7 +40,7 @@ function changeLevel(state: GameState, factor: string, change: 1 | -1): ActionRe
   if (state.progress.endedAtYear !== null) {
     return fail('GAME_OVER', 'The game has ended; start a new game to keep playing');
   }
-  // The UI may pass any string at runtime, so the id is checked even though the type is FactorId.
+  // Any string may arrive at runtime, so the id is checked even though the type is FactorId.
   if (!isFactorId(factor)) {
     return fail('UNKNOWN_FACTOR', `There is no factor called "${factor}"`);
   }
@@ -70,7 +71,9 @@ function changeLevel(state: GameState, factor: string, change: 1 | -1): ActionRe
       : { type: 'factorDowngraded', factor, level };
   // A higher level may meet another factor's unlock requirement.
   const unlocked = applyUnlocks(changed);
-  return { ok: true, state: unlocked.state, events: [event, ...unlocked.events] };
+  const events = [event, ...unlocked.events];
+  const carded = applyCards(unlocked.state, events);
+  return { ok: true, state: carded.state, events: [...events, ...carded.events] };
 }
 
 export function applyAction(state: GameState, action: GameAction): ActionResult {
