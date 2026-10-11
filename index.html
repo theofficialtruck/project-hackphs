@@ -57,9 +57,28 @@
       <p id="preview" class="preview" aria-live="polite">
         Hover over + to see what one more level would do.
       </p>
+      <section id="ozone-panel" aria-labelledby="ozone-heading">
+        <h3 id="ozone-heading">Ozone layer</h3>
+        <p id="ozone-copy">Ozone layer (blocks UV sunlight).</p>
+        <div
+          id="ozone-gauge"
+          role="meter"
+          aria-label="Ozone layer loss"
+          aria-valuemin="0"
+          aria-valuemax="5"
+          aria-valuenow="0"
+        >
+          <div id="ozone-gauge-fill"></div>
+        </div>
+        <strong id="ozone-loss">0.00% thinner</strong>
+      </section>
       <details id="science">
         <summary>Science</summary>
         <p id="science-text"></p>
+      </details>
+      <details id="science-notes-details">
+        <summary>Science notes</summary>
+        <div id="science-notes"></div>
       </details>
     </aside>
 

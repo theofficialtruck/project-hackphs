@@ -50,9 +50,10 @@ interface Preview {
   affordable: boolean;
   years: number;
   extraEmissionsPerYear: Emissions;
-  concentrationChange: { co2: number; ch4: number; n2o: number };
+  concentrationChange: { co2: number; ch4: number; n2o: number; cfc: number };
   forcingChange: number;
   warmingChange: number;
+  ozoneLossChange: number;
 }
 interface ExtraView {
   dollars: number;
@@ -62,6 +63,11 @@ interface ExtraView {
   debrief: DebriefInfo | null;
   milestones: readonly MilestoneInfo[];
   objectives: readonly ObjectiveInfo[];
+  ozone: { cfcConcentration: number; lossPercent: number; realWorldLossPercent: number };
+  cards: readonly { id: string; title: string; text: string; source: string; shown: boolean }[];
+  emissions: Emissions;
+  concentrations: { co2: number; ch4: number; n2o: number; cfc: number };
+  forcing: { co2: number; ch4: number; n2o: number; cfc: number; total: number };
 }
 type AnyFactor = GameView['factors'][number] & { upgradeCost?: number | null };
 type AnyView = Omit<GameView, 'factors'> & { factors: readonly AnyFactor[] } & Partial<ExtraView>;
@@ -115,6 +121,7 @@ function describeEmissions(e: Emissions): string {
   if (e.co2 > 0) parts.push(`${fmt(e.co2, 1)} billion tonnes of CO2`);
   if (e.ch4 > 0) parts.push(`${fmt(e.ch4, 1)} million tonnes of methane`);
   if (e.n2o > 0) parts.push(`${fmt(e.n2o, 2)} million tonnes of nitrogen as nitrous oxide`);
+  if (e.cfc > 0) parts.push(`${fmt(e.cfc, 1)} thousand tonnes of CFCs`);
   return parts.length > 0 ? parts.join(', ') : 'nothing';
 }
 
@@ -124,12 +131,17 @@ function describePreview(p: Preview): string {
   if (c.co2 > 0.05) gases.push(`CO2 +${fmt(c.co2, 1)} parts per million`);
   if (c.ch4 > 0.5) gases.push(`methane +${fmt(c.ch4, 0)} parts per billion`);
   if (c.n2o > 0.05) gases.push(`nitrous oxide +${fmt(c.n2o, 1)} parts per billion`);
-  return [
+  if (c.cfc > 0.0005) gases.push(`CFCs +${fmt(c.cfc, 4)} parts per billion`);
+  const lines = [
     `1. Releases ${describeEmissions(p.extraEmissionsPerYear)} more per year`,
     `2. After ${p.years} years: ${gases.join(', ') || 'no visible change in gas levels'}`,
     `3. Extra energy trapped: +${fmt(p.forcingChange, 3)} watts per square meter`,
     `4. Extra warming: +${fmt(p.warmingChange, 3)} degrees C`,
-  ].join('\n');
+  ];
+  if (p.ozoneLossChange > 0) {
+    lines.push(`Separately, the ozone layer gets ${fmt(p.ozoneLossChange, 2)}% thinner`);
+  }
+  return lines.join('\n');
 }
 
 // ---- State -------------------------------------------------------------------------------
@@ -359,7 +371,8 @@ function renderFactors(view: AnyView): void {
             : '')
       : '';
     detail.textContent = f.unlocked
-      ? `Level ${f.presentDayLevel} is what the real world releases today. ${f.description}`
+      ? `Releases ${describeEmissions(f.emissions)} per year. Each level adds ${describeEmissions(f.emissionsPerLevel)} per year. ` +
+        `${f.presentDayLevel === null ? '' : `Level ${f.presentDayLevel} is what the real world releases today. `}${f.description}`
       : `Locked. ${f.requirements.map((r) => `[${r.met ? 'x' : ' '}] ${r.text}`).join('  ')}`;
   }
 }
@@ -367,7 +380,13 @@ function renderFactors(view: AnyView): void {
 // ---- Events, cards, debrief --------------------------------------------------------------
 function handle(events: readonly UiEvent[]): void {
   for (const e of events) {
-    if (e.type === 'milestoneReached' || e.type === 'objectiveCompleted') cards.push(e);
+    if (
+      e.type === 'milestoneReached' ||
+      e.type === 'objectiveCompleted' ||
+      e.type === 'cardShown'
+    ) {
+      cards.push(e);
+    }
     if (e.type === 'gameEnded') renderDebrief(getView());
     if (e.type === 'gameReset') {
       gameOver = false;
@@ -384,6 +403,7 @@ function handle(events: readonly UiEvent[]): void {
 function nextCard(): void {
   const e = cards.shift();
   cardOpen = e !== undefined;
+  $('#card').classList.remove('myth-card');
   $('#card').hidden = !cardOpen;
   if (!e) return;
   const view = getView();
@@ -397,6 +417,16 @@ function nextCard(): void {
     $('#card-title').textContent = `Goal done: +${e.reward} dollars`;
     $('#card-text').textContent = `${o?.text ?? ''} ${o?.lesson ?? ''}`;
     $('#card-source').textContent = '';
+  } else if (e.type === 'cardShown') {
+    const card = getView().cards.find((c) => c.id === e.card);
+    if (!card) return nextCard();
+    $('#card').classList.toggle('myth-card', card.id === 'ozone-not-warming');
+    $('#card-title').textContent =
+      card.id === 'ozone-not-warming'
+        ? `Myth / Reality: ${card.title.replace(/^Myth: /, '')}`
+        : card.title;
+    $('#card-text').textContent = card.text;
+    $('#card-source').textContent = `Source: ${card.source}`;
   }
 }
 $('#card-ok').addEventListener('click', nextCard);
@@ -457,6 +487,9 @@ function renderScience(view: AnyView): void {
   $('#science-text').textContent = [
     `CO2 in the air: ${fmt(view.concentrations.co2, 0)} parts per million`,
     `Methane: ${fmt(view.concentrations.ch4, 0)} parts per billion`,
+    `CFCs: ${fmt(view.concentrations.cfc * 1000, 1)} parts per trillion`,
+    `CFC emissions: ${fmt(view.emissions.cfc, 1)} thousand tonnes of CFCs per year`,
+    `CFC warming effect: ${w(view.forcing.cfc)} (included in the total below)`,
     `Extra energy trapped: ${w(view.forcing.total)}`,
     `Energy Earth is still gaining: ${w(view.energyImbalance)}`,
     `Warming locked in: +${fmt(view.equilibriumWarming)} degrees C`,
@@ -465,6 +498,28 @@ function renderScience(view: AnyView): void {
   ].join('\n');
 }
 $('#science').addEventListener('toggle', () => renderScience(getView()));
+
+function renderOzone(view: AnyView): void {
+  const ozone = view.ozone;
+  if (!ozone) return;
+  $('#ozone-loss').textContent = `${fmt(ozone.lossPercent, 2)}% thinner`;
+  $('#ozone-copy').textContent =
+    `Ozone layer (blocks UV sunlight). Real world since 2010: about ${fmt(ozone.realWorldLossPercent, 1)}% thinner.`;
+  const gauge = $<HTMLElement>('#ozone-gauge-fill');
+  gauge.style.width = `${Math.min(100, (ozone.lossPercent / 5) * 100)}%`;
+  gauge.setAttribute('aria-valuenow', String(ozone.lossPercent));
+}
+
+function renderScienceNotes(view: AnyView): void {
+  const notes = $('#science-notes');
+  notes.innerHTML = view.cards
+    .filter((card) => card.shown)
+    .map(
+      (card) =>
+        `<article class="science-note${card.id === 'ozone-not-warming' ? ' myth-card' : ''}"><h4>${card.id === 'ozone-not-warming' ? 'Myth / Reality: ' : ''}${card.title}</h4><p>${card.text}</p><small>${card.source}</small></article>`,
+    )
+    .join('');
+}
 
 // ---- Render ------------------------------------------------------------------------------
 const track = $('#track');
@@ -519,6 +574,8 @@ function render(view: AnyView): void {
   renderFactors(view);
   renderCountry(view);
   renderScience(view);
+  renderOzone(view);
+  renderScienceNotes(view);
 }
 
 game.subscribe(render);
