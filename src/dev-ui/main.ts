@@ -133,7 +133,7 @@ function describePreview(p: Preview): string {
   if (c.co2 > 0.05) gases.push(`CO2 +${fmt(c.co2, 1)} parts per million`);
   if (c.ch4 > 0.5) gases.push(`methane +${fmt(c.ch4, 0)} parts per billion`);
   if (c.n2o > 0.05) gases.push(`nitrous oxide +${fmt(c.n2o, 1)} parts per billion`);
-  if (c.cfc > 0.0005) gases.push(`CFCs +${fmt(c.cfc, 4)} parts per billion`);
+  if (c.cfc > 0.0005) gases.push(`CFCs +${fmt(c.cfc * 1000, 0)} parts per trillion`);
   const lines = [
     `1. Releases ${describeEmissions(p.extraEmissionsPerYear)} more per year`,
     `2. After ${p.years} years: ${gases.join(', ') || 'no visible change in gas levels'}`,
@@ -187,7 +187,6 @@ const ocean = globe.globeMaterial() as MeshPhongMaterial;
 ocean.color.set('#0a1a6b');
 ocean.emissive.set('#06124a');
 ocean.shininess = 30;
-
 // Star field behind the globe.
 const starPositions: number[] = [];
 for (let i = 0; i < 2500; i++) {
@@ -229,7 +228,7 @@ $('#start').addEventListener('click', () => {
   started = true;
   playing = true;
   const intro = $('#intro');
-  intro.classList.add('leaving');
+  intro.classList.add('leaving'); // fades out, then is removed
   setTimeout(() => {
     intro.hidden = true;
   }, 600);
@@ -243,6 +242,7 @@ $('#start').addEventListener('click', () => {
 const playButton = $<HTMLButtonElement>('#play');
 const speedInput = $<HTMLInputElement>('#speed');
 speedInput.addEventListener('input', () => {
+  // Logarithmic: the slider moves evenly from 0.5 to 1000 years per second.
   const raw = MIN_SPEED * (MAX_SPEED / MIN_SPEED) ** (Number(speedInput.value) / 100);
   speed = raw >= 10 ? Math.round(raw) : Math.round(raw * 10) / 10;
   paintClock();
@@ -261,7 +261,8 @@ const warmingEl = $('#warming');
 let shownText = '';
 let shownClip = '';
 let lastRecolor = 0;
-
+// The number and the bar both follow the smoothed value, once per frame. The bar is a fixed
+// gradient that is revealed with clip-path, so nothing is re-laid out while it grows.
 function paintWarming(now: number): void {
   const text = `+${fmt(shownWarming)}`;
   if (text !== shownText) {
@@ -274,6 +275,7 @@ function paintWarming(now: number): void {
     shownClip = clip;
     fillBar.style.clipPath = clip;
   }
+  // Repainting every country is expensive, so do it at most a few times per second.
   if (now - lastRecolor > 400) {
     lastRecolor = now;
     recolor(getView());
@@ -286,7 +288,7 @@ function frame(now: number): void {
   last = now;
   const view = getView();
   if (started && playing && !view.ended) handle(game.advance(seconds * speed));
-  shownWarming += (view.surfaceWarming - shownWarming) * Math.min(1, seconds * 6);
+  shownWarming += (view.surfaceWarming - shownWarming) * Math.min(1, seconds * 6); // smooth count up
   paintWarming(now);
   requestAnimationFrame(frame);
 }
@@ -403,7 +405,7 @@ function handle(events: readonly UiEvent[]): void {
       if (milestone) {
         appendUpdate(
           'milestone',
-          `+${event.warming} degrees C: ${milestone.title}`,
+          `+${event.warming} degree${event.warming === 1 ? '' : 's'} C: ${milestone.title}`,
           milestone.text,
           milestone.source,
         );
@@ -414,17 +416,13 @@ function handle(events: readonly UiEvent[]): void {
         appendUpdate(
           'goal',
           `Goal complete: +${event.reward} dollars`,
-          `${objective.text} ${objective.lesson}`,
+          `${objective.text}. ${objective.lesson}`,
         );
       }
     } else if (event.type === 'cardShown') {
       const card = view.cards.find((item) => item.id === event.card);
       if (card) {
-        const title =
-          card.id === 'ozone-not-warming'
-            ? `Myth / Reality: ${card.title.replace(/^Myth: /, '')}`
-            : card.title;
-        appendUpdate('science', title, card.text, card.source);
+        appendUpdate('science', card.title, card.text, card.source);
       }
     } else if (event.type === 'gameEnded') {
       playing = false;
@@ -502,12 +500,14 @@ $('#country-close').addEventListener('click', () => {
 function renderScience(view: AnyView): void {
   if (!$<HTMLDetailsElement>('#science').open) return;
   const w = (n: number) => `${fmt(n, 2)} watts per square meter`;
-  const real = view.realWorld;
   $('#science-text').textContent = [
-    `CO2 in the air: ${fmt(view.concentrations.co2, 0)} parts per million (real world 2019: ${real.co2})`,
-    `Methane: ${fmt(view.concentrations.ch4, 0)} parts per billion (real world 2019: ${real.ch4})`,
-    `Nitrous oxide: ${fmt(view.concentrations.n2o, 0)} parts per billion (real world 2019: ${real.n2o})`,
-    `Ozone layer: ${fmt(view.ozone.lossPercent, 1)}% thinner (real world today: about ${view.ozone.realWorldLossPercent}%)`,
+    `CO2: ${fmt(view.concentrations.co2, 0)} parts per million (2019 real world: ${view.realWorld.co2})`,
+    `Methane: ${fmt(view.concentrations.ch4, 0)} parts per billion (2019 real world: ${view.realWorld.ch4})`,
+    `Nitrous oxide: ${fmt(view.concentrations.n2o, 0)} parts per billion (2019 real world: ${view.realWorld.n2o})`,
+    `CFCs: ${fmt(view.concentrations.cfc * 1000, 1)} parts per trillion`,
+    `CFC emissions: ${fmt(view.emissions.cfc, 1)} thousand tonnes of CFCs per year`,
+    `CFC warming effect: ${w(view.forcing.cfc)} (included in the total below)`,
+    `Ozone layer: ${fmt(view.ozone.lossPercent, 2)}% thinner (real world since 2010: about ${fmt(view.ozone.realWorldLossPercent, 1)}%)`,
     `Extra energy trapped: ${w(view.forcing.total)}`,
     `Energy Earth is still gaining: ${w(view.energyImbalance)}`,
     `Warming locked in: +${fmt(view.equilibriumWarming)} degrees C`,
@@ -517,10 +517,35 @@ function renderScience(view: AnyView): void {
 }
 $('#science').addEventListener('toggle', () => renderScience(getView()));
 
+function renderOzone(view: AnyView): void {
+  const ozone = view.ozone;
+  if (!ozone) return;
+  $('#ozone-loss').textContent = `${fmt(ozone.lossPercent, 2)}% thinner`;
+  $('#ozone-copy').textContent =
+    `Ozone layer (blocks UV sunlight). Real world since 2010: about ${fmt(ozone.realWorldLossPercent, 1)}% thinner.`;
+  $<HTMLElement>('#ozone-gauge-fill').style.width =
+    `${Math.min(100, (ozone.lossPercent / 5) * 100)}%`;
+  $('#ozone-gauge').setAttribute('aria-valuenow', fmt(Math.min(5, ozone.lossPercent)));
+}
+
+let scienceNotesShown = -1;
+function renderScienceNotes(view: AnyView): void {
+  const shown = (view.cards ?? []).filter((card) => card.shown);
+  if (shown.length === scienceNotesShown) return;
+  scienceNotesShown = shown.length;
+  $('#science-notes').innerHTML = shown
+    .map(
+      (card) =>
+        `<article class="science-note${card.id === 'ozone-not-warming' ? ' myth-card' : ''}"><h4>${card.title}</h4><p>${card.text}</p><small>${card.source}</small></article>`,
+    )
+    .join('');
+}
+
 // ---- Render ------------------------------------------------------------------------------
 const track = $('#track');
 const fillBar = $('#fill');
 const pctOf = (w: number): string => `${(w / TRACK_MAX) * 100}%`;
+track.setAttribute('aria-label', `Warming track to +${TRACK_MAX} degrees C`);
 track.insertAdjacentHTML(
   'beforeend',
   (getView().milestones ?? [])
@@ -529,8 +554,8 @@ track.insertAdjacentHTML(
         `<i class="tick" data-w="${m.warming}" style="left:${pctOf(m.warming)}" title="${m.title}"></i>`,
     )
     .join('') +
-    `<i class="tick today" style="left:${pctOf(getView().realWorld.warming)}" title="Real world, 2011 to 2020: +${getView().realWorld.warming} degrees C"></i>` +
-    `<span class="mark today" style="left:${pctOf(getView().realWorld.warming)}">Today</span>` +
+    `<i class="tick today" style="left:${pctOf(getView().realWorld.warming)}" title="Real world 2011 to 2020: +${getView().realWorld.warming} degrees C"></i>` +
+    `<span class="mark today" style="left:${pctOf(getView().realWorld.warming)}">Today +${getView().realWorld.warming}</span>` +
     [5, 10, 15, 20]
       .map(
         (w) => `<span class="mark${w === 20 ? ' last' : ''}" style="left:${pctOf(w)}">+${w}</span>`,
@@ -554,13 +579,15 @@ function render(view: AnyView): void {
   if (view.dollars !== undefined && view.incomePerYear !== undefined) {
     $('#money').textContent = `${Math.floor(view.dollars)} dollars`;
     $('#income').textContent =
-      view.savingsCap !== undefined && view.dollars >= view.savingsCap
+      view.dollars >= view.savingsCap
         ? `Savings full at ${Math.floor(view.savingsCap)} dollars. Upgrade to raise the limit`
         : `+${Math.floor(view.incomePerYear)} dollars per year`;
   }
   renderFactors(view);
   renderCountry(view);
   renderScience(view);
+  renderOzone(view);
+  renderScienceNotes(view);
 }
 
 game.subscribe(render);

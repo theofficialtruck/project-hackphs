@@ -3,7 +3,7 @@ import { defineConfig } from 'vitest/config';
 export default defineConfig({
   build: {
     rolldownOptions: {
-      // Two pages: the globe game (index.html) and the numbers page (dev.html).
+      // Two pages: the globe page (index.html) and the numbers page (dev.html).
       input: {
         main: 'index.html',
         dev: 'dev.html',

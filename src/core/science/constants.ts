@@ -26,7 +26,8 @@ const GLOBAL_METHANE_BUDGET_2020 =
   'bottom up estimates for 2008-2017, https://essd.copernicus.org/articles/12/1561/2020/';
 
 const AR6_SPM =
-  'IPCC AR6 WG1 Summary for Policymakers, https://www.ipcc.ch/report/ar6/wg1/chapter/summary-for-policymakers/';const WMO_OZONE_2022 =
+  'IPCC AR6 WG1 Summary for Policymakers, https://www.ipcc.ch/report/ar6/wg1/chapter/summary-for-policymakers/';
+const WMO_OZONE_2022 =
   'WMO/UNEP Scientific Assessment of Ozone Depletion 2022, Twenty Questions and Answers About the Ozone Layer, ' +
   'https://csl.noaa.gov/assessments/ozone/2022/twentyquestions/';
 const AR6_METRICS_TABLE =
@@ -116,9 +117,10 @@ export const SCIENCE = {
     value: 1.09,
     unit: 'degrees C',
     description: 'How much warmer Earth was in 2011 to 2020 than in 1850 to 1900.',
-    source: `${AR6_SPM}, A.1.2`,
+    source: `${AR6_SPM}, A.1.2 (1.09, very likely 0.95 to 1.20)`,
     kind: 'measured',
   },
+
   // ---------------------------------------------------------------- forcing
   greenhouseForcingCoefficients: {
     value: {

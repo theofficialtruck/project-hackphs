@@ -1,9 +1,9 @@
 // Plays whole games with a simple automated player to check the game can be finished and is paced sensibly.
 import { describe, expect, it } from 'vitest';
+import { FACTOR_IDS } from '../src/core/factors';
 import { GAMEPLAY } from '../src/core/gameplay';
 import { MILESTONES } from '../src/core/progression';
 import { advanceTicks } from '../src/core/simulation';
-import { FACTOR_IDS } from '../src/core/factors';
 import { stateWithLevels } from '../src/core/test-helpers';
 import { runBot } from './bot';
 

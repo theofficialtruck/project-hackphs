@@ -232,6 +232,7 @@ h2 {
   top: 30px;
   color: var(--amber);
   white-space: nowrap;
+  transform: translateX(-6px);
 }
 .speed {
   grid-column: 1 / -1;
@@ -351,7 +352,6 @@ h2 {
   color: var(--dim);
   font-size: 11px;
 }
-
 .factor {
   padding: 8px 0;
   border-top: 1px solid var(--line);
@@ -476,7 +476,6 @@ summary {
 }
 #gameover {
   z-index: 21;
-  background: #1a0000cc;
 }
 #debrief {
   align-items: start;
@@ -489,13 +488,6 @@ summary {
   background: #0a1224;
   border: 1px solid var(--amber);
   border-radius: 12px;
-}
-.gameover-body {
-  border-color: var(--hot);
-}
-.gameover-body h2 {
-  font-size: 26px;
-  color: var(--hot);
 }
 .debrief-body h3 {
   margin: 16px 0 6px;
@@ -510,7 +502,15 @@ summary {
     grid-template-columns: 1fr auto;
   }
   .stats {
-    display: none;
+    grid-column: 1 / -1;
+    grid-row: 2;
+    justify-self: start;
+    gap: 12px;
+    font-size: 13px;
+  }
+  #year,
+  #money {
+    white-space: nowrap;
   }
   #panel {
     top: auto;
@@ -519,7 +519,7 @@ summary {
     right: 12px;
   }
   #side {
-    top: 155px;
+    top: 214px;
     bottom: calc(42vh + 24px);
     width: min(320px, 45vw);
   }
@@ -527,7 +527,6 @@ summary {
     max-height: 30vh;
   }
 }
-
 @media (prefers-reduced-motion: no-preference) {
   .factor {
     transition: background 0.8s;
@@ -551,7 +550,6 @@ summary {
     transform: scale(1.05);
   }
 }
-
 @media (prefers-reduced-motion: no-preference) {
   /* Start page: one calm sequence, top to bottom. */
   .wordmark {
@@ -571,19 +569,13 @@ summary {
       fade-up 1s ease 2.1s both,
       pulse 1.8s ease-in-out 3.2s infinite;
   }
-
-  /* Game start: the HUD, activity list, and Updates feed fade in. */
+  /* Game start: the HUD and the activity list fade in. */
   #hud {
     animation: fade-in 1s ease both;
   }
-  #panel,
-  #side {
+  #panel {
     animation: fade-in 1s ease 0.3s both;
   }
-  .note:first-child {
-    animation: fade-up 0.6s ease both;
-  }
-
   /* Game end: the screen fades in, then the text appears line by line. */
   #debrief,
   #gameover {

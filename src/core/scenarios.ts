@@ -23,7 +23,7 @@ export const SCENARIOS: readonly Scenario[] = [
   { id: 'nearEnd', name: 'Close to the ending', warming: 19.5 },
 ];
 
-const MAX_YEARS = 10000;
+const MAX_YEARS = 10_000;
 
 export function buyCheapestUpgrades(state: GameState): GameState {
   let current = state;

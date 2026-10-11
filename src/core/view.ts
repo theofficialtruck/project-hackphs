@@ -100,11 +100,10 @@ export interface RealWorldView {
 export interface GameView {
   readonly cards: readonly CardView[];
   readonly ozone: OzoneView;
-  readonly realWorld: RealWorldView;
   readonly dollars: number;
   readonly incomePerYear: number;
-  /** Income stops adding money once dollars reach this amount. */
   readonly savingsCap: number;
+  readonly realWorld: RealWorldView;
   readonly milestones: readonly MilestoneView[];
   readonly objectives: readonly ObjectiveView[];
   readonly endingWarming: number;
@@ -183,15 +182,15 @@ export function selectView(state: GameState): GameView {
       lossPercent: ozoneLossPercent(gas.cfc),
       realWorldLossPercent: SCIENCE.ozoneLossToday.value,
     },
+    dollars: state.dollars,
+    incomePerYear: incomePerYear(state.factors),
+    savingsCap: savingsCap(state.factors),
     realWorld: {
       warming: SCIENCE.observedWarming2011To2020.value,
       co2: SCIENCE.co2Concentration2019.value,
       ch4: SCIENCE.ch4Concentration2019.value,
       n2o: SCIENCE.n2oConcentration2019.value,
     },
-    dollars: state.dollars,
-    incomePerYear: incomePerYear(state.factors),
-    savingsCap: savingsCap(state.factors),
     milestones: MILESTONES.map((m) => ({
       ...m,
       reached: state.progress.milestonesReached.includes(m.warming),

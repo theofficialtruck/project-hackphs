@@ -58,6 +58,7 @@ describe('science cards', () => {
     expect(state.progress.cardsShown).toContain('co2-record');
     expect(cardsIn(advanceTicks(createInitialState(), 12 * 80).events)).not.toContain('co2-record');
   });
+
   it('warn about the thinning ozone layer once CFCs reach real world levels', () => {
     const { events } = advanceTicks(stateWithLevels({ coal: 2, refrigerants: 10 }), 12 * 60);
     expect(cardsIn(events)).toContain('ozone-today');

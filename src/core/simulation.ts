@@ -2,7 +2,7 @@
  * Moves the simulation forward in time. Each tick (one month) runs the chain:
  * factor levels -> emissions -> gas concentrations -> radiative forcing -> temperature.
  */
-import { addIncome } from './economy';
+import { incomePerYear, savingsCap } from './economy';
 import { applyCards } from './education';
 import type { GameEvent, StepResult } from './events';
 import { totalEmissions } from './factors';
@@ -42,8 +42,10 @@ export function tick(state: GameState): StepResult<GameState> {
     ? appendHistory(state.history, historyPoint(nextTick / TICKS_PER_YEAR, gases, climate))
     : state.history;
 
-  const dollars = addIncome(state.dollars, state.factors, YEARS_PER_TICK);
-
+  const income = incomePerYear(state.factors);
+  const cap = savingsCap(state.factors);
+  const dollars =
+    state.dollars >= cap ? state.dollars : Math.min(cap, state.dollars + income * YEARS_PER_TICK);
   const unlocked = applyUnlocks({
     ...state,
     tick: nextTick,

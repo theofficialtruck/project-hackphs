@@ -15,9 +15,3 @@ export function incomePerYear(states: FactorStates): number {
 export function savingsCap(states: FactorStates): number {
   return GAMEPLAY.savingsYears.value * incomePerYear(states);
 }
-
-export function addIncome(dollars: number, states: FactorStates, years: number): number {
-  const cap = savingsCap(states);
-  if (dollars >= cap) return dollars;
-  return Math.min(cap, dollars + incomePerYear(states) * years);
-}

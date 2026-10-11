@@ -54,8 +54,9 @@ export const GAMEPLAY = {
   savingsYears: {
     value: 20,
     unit: 'years of income',
-    description: 'Maximum savings from ordinary income at the current income rate.',
-    source: 'Game design choice: savings are capped at twenty years of current income.',
+    description: 'Money stops building up once savings reach this many years of income.',
+    source:
+      'Game design choice: stops players from waiting at high speed to collect unlimited money, while the most expensive upgrade still fits under the limit.',
     kind: 'gameplay',
   },
   costGrowth: {

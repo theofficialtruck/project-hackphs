@@ -55,14 +55,14 @@ export const MILESTONES: readonly Milestone[] = [
   },
   {
     warming: 7,
-    title: 'Seven degrees warmer',
-    text: 'Heat and humidity together would start to pass the limit the human body can survive for long in some regions, raising the question of whether people could still live there.',
+    title: 'Dangerous heat reaches some regions',
+    text: 'At about 7 degrees C of global warming, combinations of heat and humidity could exceed the human survival limit in some regions.',
     source: HEAT_STRESS,
   },
   {
     warming: 11,
-    title: 'Eleven degrees warmer',
-    text: 'With 11 to 12 degrees C of warming, the regions too hot and humid for the human body would cover the places where most people live today.',
+    title: 'Dangerous heat reaches most people',
+    text: 'At about 11 to 12 degrees C of global warming, combinations of heat and humidity could exceed the human survival limit across regions where most people live today.',
     source: HEAT_STRESS,
   },
 ];
