@@ -80,6 +80,6 @@ scripts/       Data build scripts
 
 ## AI USE
 
-- AI was used to fix  merge conflicts
+- AI was used to fix some of the merge conflicts
 - AI was used for some styling
 - AI was used for all audio (Elevenlabs)
