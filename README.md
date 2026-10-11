@@ -6,7 +6,7 @@ and upgrading real human activities such as coal power, livestock farming and fe
 temperature change comes from a simplified but scientifically sourced climate model, so the player
 learns how emissions, greenhouse gases, infrared radiation and temperature are actually connected.
 
-The engine (simulation, game state, mechanics) is plain TypeScript and runs entirely in the browser. There is no server.
+The engine (simulation, game state, mechanics) is plain TypeScript and runs entirely in the browser. There is no need for a server.
 
 ## Requirements
 
@@ -22,6 +22,23 @@ npm run dev
 
 Then open <http://localhost:5173/> for the game, or <http://localhost:5173/dev.html> for the
 numbers page, which shows every value the engine calculates.
+
+## Features
+
+- Based on formulas from real life climate scientists to simulate data
+- Fun interactive gameplay
+- An OST tuned with Elevenlabs
+
+## What We Used
+
+- TypeScript
+- View3
+- Audio made with Elevenlabs
+- Three.js - 3D graphics rendering
+- Globe.gl - 3D mapping
+- World-Atlas - geographic data on country boundaries
+- Topojson-client - formatting
+- d3-geo - transforms the spherical globe into a 2D circle
 
 ## Scripts
 
