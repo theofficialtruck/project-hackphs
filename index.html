@@ -7,40 +7,99 @@
   </head>
   <body>
     <div id="globe"></div>
-    <aside id="panel">
-      <h1>Ozone Inc.</h1>
-      <p id="status"></p>
-      <p class="controls">
-        <button id="play">Play</button>
-        <button id="step">Step 1 year</button>
-        <select id="speed"></select>
-        <button id="reset">Reset</button>
-        <select id="scenario"></select>
-      </p>
-      <p id="money"></p>
-      <p id="ozone"></p>
+
+    <section id="intro">
+      <div class="intro-top">
+        <h1 class="wordmark">Ozone Inc.</h1>
+        <p class="goal">You run Ozone Inc. Your goal: warm the Earth to +4 degrees C.</p>
+      </div>
+      <div class="intro-bottom">
+        <div class="facts" id="hook">
+          <div class="fact cold">
+            <span class="fact-label">Without greenhouse gases, Earth would be about</span>
+            <span class="temp"><b id="temp-cold"></b> degrees C</span>
+          </div>
+          <div class="fact warm">
+            <span class="fact-label">With them, it is about</span>
+            <span class="temp"><b id="temp-warm"></b> degrees C</span>
+          </div>
+        </div>
+        <button id="start" class="primary">Start</button>
+      </div>
+    </section>
+
+    <header id="hud" hidden>
+      <div class="warming">
+        <span id="warming" class="big">+0.00</span>
+        <span class="unit">degrees C global warming</span>
+      </div>
+      <div class="stats">
+        <span id="year">Year 0</span>
+        <span id="money">0 dollars</span>
+        <span id="income" class="dim"></span>
+      </div>
+      <div class="clock">
+        <button id="play">Pause</button>
+      </div>
+      <div id="track" class="track" aria-label="Warming track to +20 degrees C">
+        <div id="fill" class="fill"></div>
+      </div>
+      <label class="speed" for="speed">
+        Simulation speed
+        <input id="speed" type="range" min="0" max="100" step="1" value="0" />
+        <output id="speed-label" for="speed">0.5 years per second</output>
+      </label>
+    </header>
+
+    <aside id="panel" hidden>
+      <h2>Activities</h2>
       <div id="factors"></div>
-      <pre id="preview">Hover over a + button to preview an upgrade.</pre>
-      <pre id="news"></pre>
-      <p><a href="/dev.html">Numbers page</a></p>
+      <p id="preview" class="preview" aria-live="polite">
+        Hover over + to see what one more level would do.
+      </p>
+      <details id="science">
+        <summary>Science</summary>
+        <p id="science-text"></p>
+      </details>
     </aside>
-    <aside id="goals">
-      <h2>Goal: reach +4 degrees C</h2>
-      <div id="milestones"></div>
-      <h2>Side goals</h2>
-      <div id="objectives"></div>
-      <h2>Science cards</h2>
-      <div id="cards"></div>
-    </aside>
-    <aside id="debrief" hidden>
-      <h2>Earth reached +4 degrees C</h2>
-      <pre id="debrief-text"></pre>
-      <button id="debrief-reset">Play again</button>
-    </aside>
+
     <aside id="country" hidden>
+      <button id="country-close" aria-label="Close">x</button>
       <h2 id="country-name"></h2>
       <p id="country-text"></p>
     </aside>
-    <script type="module" src="/src/dev-ui/globe-page.ts"></script>
+
+    <div id="card" hidden>
+      <div class="card-body">
+        <h2 id="card-title"></h2>
+        <p id="card-text"></p>
+        <p id="card-source" class="dim"></p>
+        <button id="card-ok" class="primary">Continue</button>
+      </div>
+    </div>
+
+    <div id="fx" aria-hidden="true"></div>
+    <div id="debrief" hidden></div>
+    <div id="gameover" hidden role="alertdialog" aria-labelledby="gameover-title">
+      <div class="gameover-body">
+        <h2 id="gameover-title">Game over: Earth is no longer livable</h2>
+        <p>Global warming has reached +20 degrees C.</p>
+        <p>
+          At this temperature, heat and humidity together would be too much for the human body to
+          cool itself in almost every place on Earth. Earth would no longer be habitable for humans.
+        </p>
+        <p>
+          Researchers estimate that about 7 degrees C of warming would first push parts of the
+          tropics past the limit, and about 11 to 12 degrees C would do so for most of today's
+          population.
+        </p>
+        <p class="dim">
+          Source: Sherwood and Huber, 2010, "An adaptability limit to climate change due to heat
+          stress", Proceedings of the National Academy of Sciences.
+        </p>
+        <button id="gameover-again" class="primary">Play again</button>
+      </div>
+    </div>
+    <script type="module" src="/src/dev-ui/main.ts"></script>
   </body>
 </html>

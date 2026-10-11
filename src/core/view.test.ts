@@ -19,6 +19,11 @@ describe('view', () => {
     expect(view.radiation.outgoingInfrared).toBeCloseTo(view.radiation.absorbedSolar, 10);
   });
 
+  it('gives the real world values to compare against', () => {
+    const view = selectView(createInitialState());
+    expect(view.realWorld).toEqual({ warming: 1.09, co2: 410, ch4: 1866, n2o: 332 });
+  });
+
   it('lists every factor with its level, lock status and requirements', () => {
     const view = selectView(createInitialState());
     expect(view.factors.map((f) => f.id)).toEqual(FACTORS.map((f) => f.id));
