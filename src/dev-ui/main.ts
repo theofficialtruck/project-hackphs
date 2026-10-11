@@ -382,7 +382,10 @@ function handle(events: readonly UiEvent[]): void {
   for (const e of events) {
     if (e.type === 'milestoneReached' || e.type === 'objectiveCompleted' || e.type === 'cardShown')
       addNote(e);
-    if (e.type === 'gameEnded') renderDebrief(getView());
+    if (e.type === 'gameEnded') {
+      renderDebrief(getView());
+      showGameOver();
+    }
     if (e.type === 'gameReset') {
       gameOver = false;
       $('#gameover').hidden = true;
@@ -459,11 +462,11 @@ function renderDebrief(view: AnyView): void {
     ${`<ul>${d.realWorld.map((r) => `<li>${r.text} <span class="dim">Source: ${r.source}</span></li>`).join('')}</ul>`}
     <h3>Where this game is simpler than reality</h3>${li(d.gameSimplifications)}
     <button id="again" class="primary">Play again</button></div>`;
-  box.hidden = false;
   $('#again').addEventListener('click', () => {
     const r = game.dispatch({ type: 'reset' });
     if (r.ok) handle(r.events);
     playing = true;
+    paintClock();
   });
 }
 
@@ -541,9 +544,9 @@ function showGameOver(): void {
   paintClock();
   $('#gameover').hidden = false;
 }
-// The debrief is already open underneath, so this only uncovers it.
 $('#gameover-again').addEventListener('click', () => {
   $('#gameover').hidden = true;
+  $('#debrief').hidden = false;
 });
 
 function render(view: AnyView): void {
