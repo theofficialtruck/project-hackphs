@@ -41,7 +41,7 @@
       <div class="clock">
         <button id="play">Pause</button>
       </div>
-      <div id="track" class="track" aria-label="Warming track to +20 degrees C">
+      <div id="track" class="track" aria-label="Warming track to +4 degrees C">
         <div id="fill" class="fill"></div>
       </div>
       <label class="speed" for="speed">
@@ -99,26 +99,6 @@
 
     <div id="fx" aria-hidden="true"></div>
     <div id="debrief" hidden></div>
-    <div id="gameover" hidden role="alertdialog" aria-labelledby="gameover-title">
-      <div class="gameover-body">
-        <h2 id="gameover-title">Game over: Earth is no longer livable</h2>
-        <p>Global warming has reached +20 degrees C.</p>
-        <p>
-          At this temperature, heat and humidity together would be too much for the human body to
-          cool itself in almost every place on Earth. Earth would no longer be habitable for humans.
-        </p>
-        <p>
-          Researchers estimate that about 7 degrees C of warming would first push parts of the
-          tropics past the limit, and about 11 to 12 degrees C would do so for most of today's
-          population.
-        </p>
-        <p class="dim">
-          Source: Sherwood and Huber, 2010, "An adaptability limit to climate change due to heat
-          stress", Proceedings of the National Academy of Sciences.
-        </p>
-        <button id="gameover-again" class="primary">Play again</button>
-      </div>
-    </div>
     <script type="module" src="/src/dev-ui/main.ts"></script>
   </body>
 </html>

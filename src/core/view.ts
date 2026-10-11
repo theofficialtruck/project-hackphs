@@ -11,7 +11,7 @@ import {
   totalEmissions,
   type FactorId,
 } from './factors';
-import { incomePerYear, upgradeCost } from './economy';
+import { incomePerYear, savingsCap, upgradeCost } from './economy';
 import { CARDS } from './education';
 import { GAMEPLAY } from './gameplay';
 import { MILESTONES, OBJECTIVES, createDebrief, type Debrief, type Milestone } from './progression';
@@ -90,11 +90,23 @@ export interface OzoneView {
   readonly realWorldLossPercent: number;
 }
 
+export interface RealWorldView {
+  readonly warming: number;
+  readonly co2: number;
+  readonly ch4: number;
+  readonly n2o: number;
+}
+
+// Warming (2011–2020) and atmospheric levels (2019), IPCC AR6 SPM A.1.1 and A.1.2.
+const REAL_WORLD: RealWorldView = { warming: 1.09, co2: 410, ch4: 1866, n2o: 332 };
+
 export interface GameView {
   readonly cards: readonly CardView[];
   readonly ozone: OzoneView;
   readonly dollars: number;
   readonly incomePerYear: number;
+  readonly savingsCap: number;
+  readonly realWorld: RealWorldView;
   readonly milestones: readonly MilestoneView[];
   readonly objectives: readonly ObjectiveView[];
   readonly endingWarming: number;
@@ -175,6 +187,8 @@ export function selectView(state: GameState): GameView {
     },
     dollars: state.dollars,
     incomePerYear: incomePerYear(state.factors),
+    savingsCap: savingsCap(state.factors),
+    realWorld: REAL_WORLD,
     milestones: MILESTONES.map((m) => ({
       ...m,
       reached: state.progress.milestonesReached.includes(m.warming),

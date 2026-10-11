@@ -58,6 +58,8 @@ interface Preview {
 interface ExtraView {
   dollars: number;
   incomePerYear: number;
+  savingsCap: number;
+  realWorld: { warming: number; co2: number; ch4: number; n2o: number };
   endingWarming: number;
   ended: boolean;
   debrief: DebriefInfo | null;
@@ -84,9 +86,7 @@ const COLOR_STOPS: readonly (readonly [number, readonly [number, number, number]
   [0, [0, 230, 118]],
   [1.5, [255, 230, 0]],
   [3, [255, 145, 0]],
-  [5, [255, 23, 68]],
-  [10, [41, 121, 255]],
-  [20, [170, 0, 255]],
+  [4, [255, 23, 68]],
 ];
 
 function $<T extends HTMLElement>(selector: string): T {
@@ -147,16 +147,13 @@ function describePreview(p: Preview): string {
 // ---- State -------------------------------------------------------------------------------
 const game = createGame();
 const getView = (): AnyView => game.getView() as AnyView;
-// Warming at which the game-over screen appears. A game design choice made in this screen.
-const UNINHABITABLE_WARMING = 20;
-// The warming track always runs from 0 to the game-over warming.
-const TRACK_MAX = UNINHABITABLE_WARMING;
+// The track and UI use the engine's +4 degree ending.
+const TRACK_MAX = getView().endingWarming;
 const MIN_SPEED = 0.5;
 const MAX_SPEED = 1000;
 let started = false;
 let playing = false;
 let speed = MIN_SPEED; // simulated years per real second, set by the slider
-let gameOver = false;
 let shownWarming = 0;
 let coloredAt = NaN;
 let selectedCountry: string | null = null;
@@ -289,8 +286,7 @@ function frame(now: number): void {
   const seconds = Math.min((now - last) / 1000, 0.25);
   last = now;
   const view = getView();
-  if (started && playing && !cardOpen && !gameOver && !view.ended)
-    handle(game.advance(seconds * speed));
+  if (started && playing && !cardOpen && !view.ended) handle(game.advance(seconds * speed));
   shownWarming += (view.surfaceWarming - shownWarming) * Math.min(1, seconds * 6); // smooth count up
   paintWarming(now);
   requestAnimationFrame(frame);
@@ -372,7 +368,7 @@ function renderFactors(view: AnyView): void {
       : '';
     detail.textContent = f.unlocked
       ? `Releases ${describeEmissions(f.emissions)} per year. Each level adds ${describeEmissions(f.emissionsPerLevel)} per year. ` +
-        `${f.presentDayLevel === null ? '' : `Level ${f.presentDayLevel} is what the real world releases today. `}${f.description}`
+        `${f.presentDayLevel === null ? 'Not used in the real world today. ' : `Level ${f.presentDayLevel} is what the real world releases today. `}${f.description}`
       : `Locked. ${f.requirements.map((r) => `[${r.met ? 'x' : ' '}] ${r.text}`).join('  ')}`;
   }
 }
@@ -387,10 +383,12 @@ function handle(events: readonly UiEvent[]): void {
     ) {
       cards.push(e);
     }
-    if (e.type === 'gameEnded') renderDebrief(getView());
+    if (e.type === 'gameEnded') {
+      playing = false;
+      paintClock();
+      renderDebrief(getView());
+    }
     if (e.type === 'gameReset') {
-      gameOver = false;
-      $('#gameover').hidden = true;
       cards.length = 0;
       shownWarming = 0;
       selectedCountry = null;
@@ -485,11 +483,13 @@ function renderScience(view: AnyView): void {
   if (!$<HTMLDetailsElement>('#science').open) return;
   const w = (n: number) => `${fmt(n, 2)} watts per square meter`;
   $('#science-text').textContent = [
-    `CO2 in the air: ${fmt(view.concentrations.co2, 0)} parts per million`,
-    `Methane: ${fmt(view.concentrations.ch4, 0)} parts per billion`,
+    `CO2: ${fmt(view.concentrations.co2, 0)} parts per million (2019 real world: ${view.realWorld.co2})`,
+    `Methane: ${fmt(view.concentrations.ch4, 0)} parts per billion (2019 real world: ${view.realWorld.ch4})`,
+    `Nitrous oxide: ${fmt(view.concentrations.n2o, 0)} parts per billion (2019 real world: ${view.realWorld.n2o})`,
     `CFCs: ${fmt(view.concentrations.cfc * 1000, 1)} parts per trillion`,
     `CFC emissions: ${fmt(view.emissions.cfc, 1)} thousand tonnes of CFCs per year`,
     `CFC warming effect: ${w(view.forcing.cfc)} (included in the total below)`,
+    `Ozone layer: ${fmt(view.ozone.lossPercent, 2)}% thinner (real world since 2010: about ${fmt(view.ozone.realWorldLossPercent, 1)}%)`,
     `Extra energy trapped: ${w(view.forcing.total)}`,
     `Energy Earth is still gaining: ${w(view.energyImbalance)}`,
     `Warming locked in: +${fmt(view.equilibriumWarming)} degrees C`,
@@ -525,6 +525,7 @@ function renderScienceNotes(view: AnyView): void {
 const track = $('#track');
 const fillBar = $('#fill');
 const pctOf = (w: number): string => `${(w / TRACK_MAX) * 100}%`;
+track.setAttribute('aria-label', `Warming track to +${TRACK_MAX} degrees C`);
 track.insertAdjacentHTML(
   'beforeend',
   (getView().milestones ?? [])
@@ -533,29 +534,17 @@ track.insertAdjacentHTML(
         `<i class="tick" data-w="${m.warming}" style="left:${pctOf(m.warming)}" title="${m.title}"></i>`,
     )
     .join('') +
-    [5, 10, 15, 20]
+    `<i class="tick today" style="left:${pctOf(getView().realWorld.warming)}" title="Real world 2011 to 2020: +${getView().realWorld.warming} degrees C"></i>` +
+    `<span class="mark today" style="left:${pctOf(getView().realWorld.warming)}">Today +${getView().realWorld.warming}</span>` +
+    [2, 3, 4]
       .map(
-        (w) => `<span class="mark${w === 20 ? ' last' : ''}" style="left:${pctOf(w)}">+${w}</span>`,
+        (w) => `<span class="mark${w === 4 ? ' last' : ''}" style="left:${pctOf(w)}">+${w}</span>`,
       )
       .join(''),
 );
 
-function showGameOver(): void {
-  gameOver = true;
-  playing = false;
-  paintClock();
-  $('#gameover').hidden = false;
-}
-$('#gameover-again').addEventListener('click', () => {
-  const r = game.dispatch({ type: 'reset' });
-  if (r.ok) handle(r.events);
-  playing = true;
-  paintClock();
-});
-
 function render(view: AnyView): void {
   if (!started) return;
-  if (!gameOver && view.surfaceWarming >= UNINHABITABLE_WARMING) showGameOver();
   track.querySelectorAll<HTMLElement>('.tick').forEach((t) => {
     const w = Number(t.dataset.w);
     t.classList.toggle(
@@ -569,7 +558,10 @@ function render(view: AnyView): void {
   $('#income').hidden = !hasMoney;
   if (view.dollars !== undefined && view.incomePerYear !== undefined) {
     $('#money').textContent = `${Math.floor(view.dollars)} dollars`;
-    $('#income').textContent = `+${Math.floor(view.incomePerYear)} dollars per year`;
+    $('#income').textContent =
+      view.dollars >= view.savingsCap
+        ? `Savings full at ${Math.floor(view.savingsCap)} dollars. Upgrade to raise the limit`
+        : `+${Math.floor(view.incomePerYear)} dollars per year`;
   }
   renderFactors(view);
   renderCountry(view);

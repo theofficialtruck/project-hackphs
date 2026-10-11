@@ -183,21 +183,13 @@ h2 {
   grid-column: 1 / -1;
   position: relative;
   height: 12px;
-  margin: 8px -16px 16px;
+  margin: 8px -16px 30px;
   background: #1a2740;
 }
 .fill {
   position: absolute;
   inset: 0;
-  background: linear-gradient(
-    90deg,
-    #00e676 0%,
-    #ffe600 7.5%,
-    #ff9100 15%,
-    #ff1744 25%,
-    #2979ff 50%,
-    #aa00ff 100%
-  );
+  background: linear-gradient(90deg, #00e676 0%, #ffe600 37.5%, #ff9100 75%, #ff1744 100%);
   box-shadow: 0 0 14px #2979ff66;
   will-change: clip-path;
 }
@@ -221,6 +213,17 @@ h2 {
 }
 .tick.reached {
   background: var(--ink);
+}
+.tick.today {
+  z-index: 2;
+  width: 3px;
+  background: var(--amber);
+  box-shadow: 0 0 8px var(--amber);
+}
+.mark.today {
+  top: 30px;
+  color: var(--amber);
+  white-space: nowrap;
 }
 .speed {
   grid-column: 1 / -1;
@@ -400,8 +403,7 @@ summary {
 }
 
 #card,
-#debrief,
-#gameover {
+#debrief {
   position: fixed;
   inset: 0;
   display: grid;
@@ -414,8 +416,7 @@ summary {
   overflow-y: auto;
 }
 .card-body,
-.debrief-body,
-.gameover-body {
+.debrief-body {
   max-width: 560px;
   padding: 24px;
   background: #0a1224;
@@ -454,18 +455,6 @@ summary {
   .factor {
     transition: background 0.8s;
   }
-}
-
-#gameover {
-  z-index: 10;
-  background: #1a0000cc;
-}
-.gameover-body {
-  border-color: var(--hot);
-}
-.gameover-body h2 {
-  font-size: 26px;
-  color: var(--hot);
 }
 
 @keyframes fade-in {
@@ -512,44 +501,34 @@ summary {
     animation: fade-in 1s ease 0.3s both;
   }
   /* Game end: the screen fades in, then the text appears line by line. */
-  #debrief,
-  #gameover {
+  #debrief {
     animation: fade-in 0.8s ease both;
   }
-  .debrief-body > *,
-  .gameover-body > * {
+  .debrief-body > * {
     animation: fade-up 0.9s ease both;
   }
-  .debrief-body > :nth-child(1),
-  .gameover-body > :nth-child(1) {
+  .debrief-body > :nth-child(1) {
     animation-delay: 0.5s;
   }
-  .debrief-body > :nth-child(2),
-  .gameover-body > :nth-child(2) {
+  .debrief-body > :nth-child(2) {
     animation-delay: 0.9s;
   }
-  .debrief-body > :nth-child(3),
-  .gameover-body > :nth-child(3) {
+  .debrief-body > :nth-child(3) {
     animation-delay: 1.3s;
   }
-  .debrief-body > :nth-child(4),
-  .gameover-body > :nth-child(4) {
+  .debrief-body > :nth-child(4) {
     animation-delay: 1.7s;
   }
-  .debrief-body > :nth-child(5),
-  .gameover-body > :nth-child(5) {
+  .debrief-body > :nth-child(5) {
     animation-delay: 2.1s;
   }
-  .debrief-body > :nth-child(6),
-  .gameover-body > :nth-child(6) {
+  .debrief-body > :nth-child(6) {
     animation-delay: 2.5s;
   }
-  .debrief-body > :nth-child(7),
-  .gameover-body > :nth-child(7) {
+  .debrief-body > :nth-child(7) {
     animation-delay: 2.9s;
   }
-  .debrief-body > :nth-child(8),
-  .gameover-body > :nth-child(8) {
+  .debrief-body > :nth-child(8) {
     animation-delay: 3.3s;
   }
 }

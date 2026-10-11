@@ -42,6 +42,13 @@ export const CARDS: readonly Card[] = [
     isTriggered: (state) => concentrations(state.gases).co2 > 300,
   },
   {
+    id: 'co2-record',
+    title: 'CO2 reaches a modern record',
+    text: 'CO2 has passed about 410 parts per million, the global level measured in 2019. Most of this rise happened after people began burning fossil fuels and changing forests and land.',
+    source: `${AR6_SPM}, A.1.1`,
+    isTriggered: (state) => concentrations(state.gases).co2 > 410,
+  },
+  {
     id: 'water-vapour',
     title: 'Water vapour makes it worse',
     text: 'Warmer air holds more water vapour, which is also a greenhouse gas, so it traps even more heat. Of all climate feedbacks it amplifies warming the most. Its amount follows the temperature, so it is a feedback, not the starting cause.',

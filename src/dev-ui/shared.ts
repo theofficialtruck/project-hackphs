@@ -160,7 +160,7 @@ export function createFactorList(
         f.upgradeCost === null ? 'max level' : `next ${Math.round(f.upgradeCost)} dollars`;
       level.textContent = f.unlocked ? `level ${f.level} of ${f.maxLevel}, ${price}` : 'locked';
       detail.textContent = f.unlocked
-        ? `Releases ${describeEmissions(f.emissions)}.${f.presentDayLevel === null ? '' : ` Level ${f.presentDayLevel} is the real world today.`}`
+        ? `Releases ${describeEmissions(f.emissions)}.${f.presentDayLevel === null ? ' Not used in the real world today.' : ` Level ${f.presentDayLevel} is the real world today.`}`
         : `Needs: ${f.requirements.map((r) => `${r.text}${r.met ? ' (done)' : ''}`).join(', ')}`;
     }
   };
