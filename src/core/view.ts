@@ -11,7 +11,9 @@ import {
   totalEmissions,
   type FactorId,
 } from './factors';
+import { incomePerYear, upgradeCost } from './economy';
 import { GAMEPLAY } from './gameplay';
+import { MILESTONES, OBJECTIVES, createDebrief, type Debrief, type Milestone } from './progression';
 import { regionClimates, type RegionClimate } from './regions';
 import {
   SCIENCE,
@@ -56,9 +58,30 @@ export interface FactorView {
   readonly emissions: Emissions;
   /** Extra yearly emissions from one more level. */
   readonly emissionsPerLevel: Emissions;
+  readonly upgradeCost: number | null;
+  readonly affordable: boolean;
+}
+
+export interface MilestoneView extends Milestone {
+  readonly reached: boolean;
+}
+
+export interface ObjectiveView {
+  readonly id: string;
+  readonly text: string;
+  readonly lesson: string;
+  readonly reward: number;
+  readonly done: boolean;
 }
 
 export interface GameView {
+  readonly dollars: number;
+  readonly incomePerYear: number;
+  readonly milestones: readonly MilestoneView[];
+  readonly objectives: readonly ObjectiveView[];
+  readonly endingWarming: number;
+  readonly ended: boolean;
+  readonly debrief: Debrief | null;
   /** Simulated years since the start of the game (fractional, updates every month). */
   readonly elapsedYears: number;
   /** All environmental factors in display order. */
@@ -104,6 +127,11 @@ function selectFactors(state: GameState): FactorView[] {
       })),
       emissions: factorEmissions(factor, level),
       emissionsPerLevel: emissionsPerLevel(factor),
+      upgradeCost: level < GAMEPLAY.maxFactorLevel.value ? upgradeCost(factor.id, level) : null,
+      affordable:
+        unlocked &&
+        level < GAMEPLAY.maxFactorLevel.value &&
+        upgradeCost(factor.id, level) <= state.dollars,
     };
   });
 }
@@ -115,6 +143,22 @@ export function selectView(state: GameState): GameView {
   const imbalance = energyImbalance(forcing.total, warming);
 
   return {
+    dollars: state.dollars,
+    incomePerYear: incomePerYear(state.factors),
+    milestones: MILESTONES.map((m) => ({
+      ...m,
+      reached: state.progress.milestonesReached.includes(m.warming),
+    })),
+    objectives: OBJECTIVES.map((o) => ({
+      id: o.id,
+      text: o.text,
+      lesson: o.lesson,
+      reward: o.reward,
+      done: state.progress.objectivesCompleted.includes(o.id),
+    })),
+    endingWarming: GAMEPLAY.endingWarming.value,
+    ended: state.progress.endedAtYear !== null,
+    debrief: createDebrief(state),
     elapsedYears: state.tick / TICKS_PER_YEAR,
     factors: selectFactors(state),
     emissions: totalEmissions(state.factors),

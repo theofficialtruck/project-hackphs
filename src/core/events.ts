@@ -8,6 +8,9 @@ export type GameEvent =
   | { readonly type: 'factorUpgraded'; readonly factor: FactorId; readonly level: number }
   | { readonly type: 'factorDowngraded'; readonly factor: FactorId; readonly level: number }
   | { readonly type: 'factorUnlocked'; readonly factor: FactorId }
+  | { readonly type: 'milestoneReached'; readonly warming: number }
+  | { readonly type: 'objectiveCompleted'; readonly objective: string; readonly reward: number }
+  | { readonly type: 'gameEnded'; readonly year: number }
   | { readonly type: 'gameReset' };
 
 /** A new state together with the events that produced it. */

@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { MAX_YEARS_PER_ADVANCE, createGame } from './game';
+import { createInitialState } from './state';
 import { stateWithLevels } from './test-helpers';
 
 describe('Game', () => {
@@ -64,7 +65,7 @@ describe('Game', () => {
   });
 
   it('warms the planet as factors are upgraded and time passes', () => {
-    const game = createGame();
+    const game = createGame({ ...createInitialState(), dollars: 10000 });
     for (let i = 0; i < 5; i++) {
       game.dispatch({ type: 'upgradeFactor', factor: 'coal' });
     }

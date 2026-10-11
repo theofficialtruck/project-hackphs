@@ -4,6 +4,8 @@
  */
 import { applyAction, type ActionError, type GameAction } from './actions';
 import type { GameEvent } from './events';
+import type { FactorId } from './factors';
+import { previewUpgrade, type UpgradePreview } from './preview';
 import { advanceTicks } from './simulation';
 import { TICKS_PER_YEAR, createInitialState, type GameState } from './state';
 import { selectView, type GameView } from './view';
@@ -29,6 +31,7 @@ export interface Game {
   advance(years: number): readonly GameEvent[];
   dispatch(action: GameAction): DispatchResult;
   subscribe(listener: GameListener): () => void;
+  previewUpgrade(factor: FactorId): UpgradePreview | null;
 }
 
 export function createGame(initialState: GameState = createInitialState()): Game {
@@ -80,6 +83,8 @@ export function createGame(initialState: GameState = createInitialState()): Game
       update(result.state);
       return { ok: true, events: result.events };
     },
+
+    previewUpgrade: (factor) => previewUpgrade(state, factor),
 
     subscribe(listener) {
       listeners.add(listener);

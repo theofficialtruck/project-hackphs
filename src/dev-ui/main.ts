@@ -23,6 +23,7 @@ element('#app').innerHTML = `
     <button id="reset">Reset</button>
   </p>
   <div id="factors"></div>
+  <pre id="preview">Hover over a + button to preview an upgrade.</pre>
   <pre id="news"></pre>
   <pre id="readout"></pre>
 `;
@@ -54,7 +55,10 @@ element('#reset').addEventListener('click', () => {
   if (result.ok) addNews(result.events);
 });
 
-const updateFactors = createFactorList(element('#factors'), game, addNews);
+const previewBox = element<HTMLPreElement>('#preview');
+const updateFactors = createFactorList(element('#factors'), game, addNews, (text) => {
+  previewBox.textContent = text;
+});
 
 function render(view: GameView): void {
   const { concentrations: c, forcing: f, radiation: r, feedbacks: fb } = view;
@@ -66,7 +70,20 @@ function render(view: GameView): void {
 
   updateFactors(view);
   readout.textContent = [
-    `Year ${fmt(view.elapsedYears, 1)}`,
+    `Year ${fmt(view.elapsedYears, 1)}${view.ended ? '  (game over)' : ''}`,
+    `Money: ${Math.floor(view.dollars)} dollars, earning ${Math.round(view.incomePerYear)} per year`,
+    `Milestones reached: ${
+      view.milestones
+        .filter((m) => m.reached)
+        .map((m) => `+${m.warming}`)
+        .join(', ') || 'none'
+    }`,
+    `Side goals done: ${
+      view.objectives
+        .filter((o) => o.done)
+        .map((o) => o.id)
+        .join(', ') || 'none'
+    }`,
     `Emissions: ${describeEmissions(view.emissions)}`,
     '',
     `Surface warming       ${fmt(view.surfaceWarming)} C`,

@@ -2,8 +2,10 @@
  * Moves the simulation forward in time. Each tick (one month) runs the chain:
  * factor levels -> emissions -> gas concentrations -> radiative forcing -> temperature.
  */
+import { incomePerYear } from './economy';
 import type { GameEvent, StepResult } from './events';
 import { totalEmissions } from './factors';
+import { applyProgression } from './progression';
 import { concentrations, effectiveRadiativeForcing, stepClimate, stepGasCycle } from './science';
 import {
   MAX_HISTORY_YEARS,
@@ -26,7 +28,10 @@ function appendHistory(
 
 /** Advances the simulation by one tick (one month). Returns a new state. */
 export function tick(state: GameState): StepResult<GameState> {
-  const gases = stepGasCycle(state.gases, totalEmissions(state.factors), YEARS_PER_TICK);
+  if (state.progress.endedAtYear !== null) return { state, events: [] };
+
+  const emissions = totalEmissions(state.factors);
+  const gases = stepGasCycle(state.gases, emissions, YEARS_PER_TICK);
   const forcing = effectiveRadiativeForcing(concentrations(gases)).total;
   const climate = stepClimate(state.climate, forcing, YEARS_PER_TICK);
 
@@ -36,8 +41,20 @@ export function tick(state: GameState): StepResult<GameState> {
     ? appendHistory(state.history, historyPoint(nextTick / TICKS_PER_YEAR, gases, climate))
     : state.history;
 
-  // Warming may have crossed an unlock threshold.
-  return applyUnlocks({ ...state, tick: nextTick, gases, climate, history });
+  const unlocked = applyUnlocks({
+    ...state,
+    tick: nextTick,
+    gases,
+    climate,
+    history,
+    dollars: state.dollars + incomePerYear(state.factors) * YEARS_PER_TICK,
+    progress: {
+      ...state.progress,
+      cumulativeCo2: state.progress.cumulativeCo2 + emissions.co2 * YEARS_PER_TICK,
+    },
+  });
+  const progressed = applyProgression(unlocked.state);
+  return { state: progressed.state, events: [...unlocked.events, ...progressed.events] };
 }
 
 /** Advances the simulation by a whole number of ticks. */

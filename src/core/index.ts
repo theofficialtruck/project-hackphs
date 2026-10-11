@@ -6,7 +6,7 @@
  */
 
 /** Version of the engine interface. Bumped when the interface the UI uses changes. */
-export const ENGINE_VERSION = '0.4.0';
+export const ENGINE_VERSION = '0.5.0';
 
 export { createGame, MAX_YEARS_PER_ADVANCE } from './game';
 export type { DispatchResult, Game, GameListener } from './game';
@@ -14,7 +14,9 @@ export type { ActionError, ActionErrorCode, GameAction } from './actions';
 export type { GameEvent } from './events';
 export type { FactorId } from './factors';
 export { GAMEPLAY } from './gameplay';
-export type { FactorView, GameView, RequirementView } from './view';
+export type { FactorView, GameView, MilestoneView, ObjectiveView, RequirementView } from './view';
+export type { Debrief, Milestone } from './progression';
+export type { UpgradePreview } from './preview';
 export { REGIONAL_PATTERNS, countryClimate, countryNames, plainCountryName } from './regions';
 export type { CountryClimate, RainfallTrend, RegionClimate } from './regions';
 export { TICKS_PER_YEAR } from './state';

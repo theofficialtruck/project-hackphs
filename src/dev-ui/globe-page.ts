@@ -100,12 +100,43 @@ playButton.addEventListener('click', () => {
   playButton.textContent = playing ? 'Pause' : 'Play';
 });
 element('#step').addEventListener('click', () => addNews(game.advance(1)));
-element('#reset').addEventListener('click', () => {
+function reset(): void {
   const result = game.dispatch({ type: 'reset' });
   if (result.ok) addNews(result.events);
+}
+element('#reset').addEventListener('click', reset);
+element('#debrief-reset').addEventListener('click', reset);
+
+const previewBox = element<HTMLPreElement>('#preview');
+const updateFactors = createFactorList(element('#factors'), game, addNews, (text) => {
+  previewBox.textContent = text;
 });
 
-const updateFactors = createFactorList(element('#factors'), game, addNews);
+function renderGoals(view: GameView): void {
+  element('#milestones').innerHTML = view.milestones
+    .map((m) => `<div class="${m.reached ? 'done' : ''}">+${m.warming} degrees C: ${m.title}</div>`)
+    .join('');
+  element('#objectives').innerHTML = view.objectives
+    .map((o) => `<div class="${o.done ? 'done' : ''}">${o.text} (+${o.reward} dollars)</div>`)
+    .join('');
+}
+
+function renderDebrief(view: GameView): void {
+  const panel = element('#debrief');
+  panel.hidden = view.debrief === null;
+  if (!view.debrief) return;
+  const d = view.debrief;
+  element('#debrief-text').textContent = [
+    `In this game it took ${fmt(d.yearsPlayed, 0)} years to reach +${fmt(d.finalWarming)} degrees C.`,
+    `CO2 reached ${fmt(d.finalCo2, 0)} parts per million after ${fmt(d.totalCo2Emitted, 0)} billion tonnes of CO2 were released.`,
+    '',
+    'What science says about the real world:',
+    ...d.realWorld.map((f) => `- ${f.text} (${f.source})`),
+    '',
+    'Where this game is simpler than reality:',
+    ...d.gameSimplifications.map((s) => `- ${s}`),
+  ].join('\n');
+}
 
 function describeRainfall(c: CountryClimate): string {
   const amount = `${fmt(Math.abs(c.rainfallChangePercent), 1)}%`;
@@ -160,8 +191,12 @@ function render(view: GameView): void {
   element('#status').textContent =
     `Year ${fmt(view.elapsedYears, 0)} | Global warming +${fmt(view.surfaceWarming)} degrees C | ` +
     `CO2 ${fmt(view.concentrations.co2, 0)} parts per million`;
+  element('#money').textContent =
+    `${Math.floor(view.dollars)} dollars (earning ${Math.round(view.incomePerYear)} per year)`;
   updateFactors(view);
   renderCountry(view);
+  renderGoals(view);
+  renderDebrief(view);
   recolor(view);
 }
 

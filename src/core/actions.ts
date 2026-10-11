@@ -2,6 +2,7 @@
  * Actions are requests to change the game (from the player or the UI). Expected problems,
  * such as invalid input, are returned as an error result instead of being thrown.
  */
+import { upgradeCost } from './economy';
 import type { GameEvent } from './events';
 import { isFactorId, type FactorId } from './factors';
 import { GAMEPLAY } from './gameplay';
@@ -13,7 +14,13 @@ export type GameAction =
   | { readonly type: 'downgradeFactor'; readonly factor: FactorId }
   | { readonly type: 'reset' };
 
-export type ActionErrorCode = 'UNKNOWN_FACTOR' | 'FACTOR_LOCKED' | 'MAX_LEVEL' | 'MIN_LEVEL';
+export type ActionErrorCode =
+  | 'UNKNOWN_FACTOR'
+  | 'FACTOR_LOCKED'
+  | 'MAX_LEVEL'
+  | 'MIN_LEVEL'
+  | 'NOT_ENOUGH_DOLLARS'
+  | 'GAME_OVER';
 
 export interface ActionError {
   readonly code: ActionErrorCode;
@@ -29,6 +36,9 @@ function fail(code: ActionErrorCode, message: string): ActionResult {
 }
 
 function changeLevel(state: GameState, factor: string, change: 1 | -1): ActionResult {
+  if (state.progress.endedAtYear !== null) {
+    return fail('GAME_OVER', 'The game has ended; start a new game to keep playing');
+  }
   // The UI may pass any string at runtime, so the id is checked even though the type is FactorId.
   if (!isFactorId(factor)) {
     return fail('UNKNOWN_FACTOR', `There is no factor called "${factor}"`);
@@ -44,9 +54,14 @@ function changeLevel(state: GameState, factor: string, change: 1 | -1): ActionRe
   if (level < 0) {
     return fail('MIN_LEVEL', `${factor} is already at level 0`);
   }
+  const cost = change > 0 ? upgradeCost(factor, current.level) : 0;
+  if (cost > state.dollars) {
+    return fail('NOT_ENOUGH_DOLLARS', `${factor} costs ${cost} dollars`);
+  }
 
   const changed: GameState = {
     ...state,
+    dollars: state.dollars - cost,
     factors: { ...state.factors, [factor]: { ...current, level } },
   };
   const event: GameEvent =
