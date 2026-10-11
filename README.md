@@ -7,6 +7,7 @@ temperature change comes from a simplified but scientifically sourced climate mo
 learns how emissions, greenhouse gases, infrared radiation and temperature are actually connected.
 
 The engine (simulation, game state, mechanics) is plain TypeScript and runs entirely in the browser. No need for a server.
+
 ## Features
 
 - Based on formulas from real life climate scientists to simulate data
@@ -30,6 +31,7 @@ The engine (simulation, game state, mechanics) is plain TypeScript and runs enti
 - npm
 
 ## Getting started
+
 ```bash
 npm install
 npm run dev
