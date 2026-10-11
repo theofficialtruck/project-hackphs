@@ -21,14 +21,20 @@ const CO2_RESPONSE = SCIENCE.co2ImpulseResponse.value;
 /** Giga tonnes of CO2 that raise the atmospheric concentration by 1 ppm (~7.78). */
 export const GT_CO2_PER_PPM = SCIENCE.gigatonnesCarbonPerPpm.value * SCIENCE.co2PerCarbon.value;
 
+export const KT_CFC12_PER_PPB =
+  SCIENCE.methaneTgPerPpb.value *
+  (SCIENCE.cfc12MolarMass.value / SCIENCE.methaneMolarMass.value) *
+  1000;
+
 /** Human emission rates. */
 export interface Emissions {
   readonly co2: number;
   readonly ch4: number;
   readonly n2o: number;
+  readonly cfc: number;
 }
 
-export const NO_EMISSIONS: Emissions = { co2: 0, ch4: 0, n2o: 0 };
+export const NO_EMISSIONS: Emissions = { co2: 0, ch4: 0, n2o: 0, cfc: 0 };
 
 /** Excess concentration above 1750 levels held in each CO2 removal part, ppm. */
 export interface Co2Parts {
@@ -44,12 +50,14 @@ export interface GasCycleState {
   readonly ch4Excess: number;
   /** Excess N2O above 1750, ppb. */
   readonly n2oExcess: number;
+  readonly cfcExcess: number;
 }
 
 export const PREINDUSTRIAL_GAS_CYCLE: GasCycleState = {
   co2Parts: { permanent: 0, slow: 0, medium: 0, fast: 0 },
   ch4Excess: 0,
   n2oExcess: 0,
+  cfcExcess: 0,
 };
 
 /**
@@ -79,6 +87,7 @@ export function stepGasCycle(
   assertFinite(emissions.co2, 'emissions.co2');
   assertFinite(emissions.ch4, 'emissions.ch4');
   assertFinite(emissions.n2o, 'emissions.n2o');
+  assertFinite(emissions.cfc, 'emissions.cfc');
 
   const co2PpmPerYear = emissions.co2 / GT_CO2_PER_PPM;
   const stepPart = (part: keyof Co2Parts): number =>
@@ -108,6 +117,12 @@ export function stepGasCycle(
       SCIENCE.nitrousOxidePerturbationLifetime.value,
       years,
     ),
+    cfcExcess: decayWithInflow(
+      state.cfcExcess,
+      emissions.cfc / KT_CFC12_PER_PPB,
+      SCIENCE.cfc12PerturbationLifetime.value,
+      years,
+    ),
   };
 }
 
@@ -118,5 +133,6 @@ export function concentrations(state: GasCycleState): GasConcentrations {
     co2: PREINDUSTRIAL_CONCENTRATIONS.co2 + permanent + slow + medium + fast,
     ch4: PREINDUSTRIAL_CONCENTRATIONS.ch4 + state.ch4Excess,
     n2o: PREINDUSTRIAL_CONCENTRATIONS.n2o + state.n2oExcess,
+    cfc: PREINDUSTRIAL_CONCENTRATIONS.cfc + state.cfcExcess,
   };
 }

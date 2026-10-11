@@ -19,13 +19,19 @@ describe('factor definitions', () => {
     expect(Object.keys(initialFactorStates()).sort()).toEqual([...FACTOR_IDS].sort());
   });
 
-  it('have a name, description and some real emissions', () => {
+  it('have a name, description and some emissions per level', () => {
     for (const factor of FACTORS) {
       expect(factor.name.length).toBeGreaterThan(0);
       expect(factor.description.length).toBeGreaterThan(0);
-      const { co2, ch4, n2o } = factor.presentDay;
-      expect(co2 + ch4 + n2o).toBeGreaterThan(0);
-      expect(Math.min(co2, ch4, n2o)).toBeGreaterThanOrEqual(0);
+      const { co2, ch4, n2o, cfc } = factor.perLevel;
+      expect(co2 + ch4 + n2o + cfc).toBeGreaterThan(0);
+      expect(Math.min(co2, ch4, n2o, cfc)).toBeGreaterThanOrEqual(0);
+    }
+  });
+
+  it('use real present day emissions for everything except CFCs', () => {
+    for (const factor of FACTORS) {
+      expect(factor.presentDay === null).toBe(factor.id === 'refrigerants');
     }
   });
 
@@ -84,6 +90,7 @@ describe('factor emissions', () => {
 
   it('grow by the same amount for every level', () => {
     for (const factor of FACTORS) {
+      if (!factor.presentDay) continue;
       const perLevel = emissionsPerLevel(factor);
       expect(perLevel.co2 * GAMEPLAY.presentDayLevel.value).toBeCloseTo(factor.presentDay.co2, 10);
       expect(perLevel.ch4 * GAMEPLAY.presentDayLevel.value).toBeCloseTo(factor.presentDay.ch4, 10);
@@ -91,6 +98,6 @@ describe('factor emissions', () => {
   });
 
   it('are zero when every factor is at level 0', () => {
-    expect(totalEmissions(initialFactorStates())).toEqual({ co2: 0, ch4: 0, n2o: 0 });
+    expect(totalEmissions(initialFactorStates())).toEqual({ co2: 0, ch4: 0, n2o: 0, cfc: 0 });
   });
 });

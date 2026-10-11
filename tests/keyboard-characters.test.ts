@@ -2,6 +2,7 @@
 // anything shown to players. This test fails if a file contains anything else.
 import { describe, expect, it } from 'vitest';
 import { FACTORS, describeRequirement } from '../src/core/factors';
+import { CARDS } from '../src/core/education';
 import { GAMEPLAY } from '../src/core/gameplay';
 import { REGIONAL_PATTERNS, countryNames, regionClimates } from '../src/core/regions';
 import { SCIENCE } from '../src/core/science';
@@ -34,6 +35,7 @@ describe('text shown to players', () => {
     ...Object.values(SCIENCE).flatMap((c) => [c.unit, c.description]),
     ...Object.values(GAMEPLAY).flatMap((c) => [c.unit, c.description]),
     ...FACTORS.flatMap((f) => [f.name, f.description, ...f.requires.map(describeRequirement)]),
+    ...CARDS.flatMap((c) => [c.title, c.text, c.source]),
     REGIONAL_PATTERNS.unit,
     REGIONAL_PATTERNS.description,
     ...regionClimates(1).map((r) => r.name),

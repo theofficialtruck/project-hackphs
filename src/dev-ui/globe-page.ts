@@ -1,5 +1,5 @@
-// Temporary globe page: each country is coloured by its own warming and can be clicked for
-// details. The final UI (built by the UI developer) replaces this page.
+// Temporary globe page: each country is colored by its own warming and can be clicked for
+// details.
 import Globe from 'globe.gl';
 import type { MeshPhongMaterial } from 'three';
 import { feature } from 'topojson-client';
@@ -7,12 +7,14 @@ import type { GeometryCollection, Topology } from 'topojson-specification';
 import countriesUrl from 'world-atlas/countries-110m.json?url';
 import {
   REGIONAL_PATTERNS,
+  SCENARIOS,
   countryClimate,
   createGame,
   plainCountryName,
   type CountryClimate,
   type GameEvent,
   type GameView,
+  type ScenarioId,
 } from '../core';
 import { SPEEDS, createFactorList, describeEvent, element, fmt, startClock } from './shared';
 import './globe-page.css';
@@ -105,6 +107,15 @@ function reset(): void {
   if (result.ok) addNews(result.events);
 }
 element('#reset').addEventListener('click', reset);
+
+const scenarioSelect = element<HTMLSelectElement>('#scenario');
+scenarioSelect.innerHTML =
+  '<option value="">Jump to...</option>' +
+  SCENARIOS.map((s) => `<option value="${s.id}">${s.name}</option>`).join('');
+scenarioSelect.addEventListener('change', () => {
+  if (scenarioSelect.value) game.loadScenario(scenarioSelect.value as ScenarioId);
+  scenarioSelect.value = '';
+});
 element('#debrief-reset').addEventListener('click', reset);
 
 const previewBox = element<HTMLPreElement>('#preview');
@@ -191,6 +202,13 @@ function render(view: GameView): void {
   element('#status').textContent =
     `Year ${fmt(view.elapsedYears, 0)} | Global warming +${fmt(view.surfaceWarming)} degrees C | ` +
     `CO2 ${fmt(view.concentrations.co2, 0)} parts per million`;
+  element('#ozone').textContent =
+    `Ozone layer: ${fmt(view.ozone.lossPercent, 1)}% thinner than normal ` +
+    `(real world today: about ${view.ozone.realWorldLossPercent}%)`;
+  element('#cards').innerHTML = view.cards
+    .filter((c) => c.shown)
+    .map((c) => `<div class="done" title="${c.text} (${c.source})">${c.title}</div>`)
+    .join('');
   element('#money').textContent =
     `${Math.floor(view.dollars)} dollars (earning ${Math.round(view.incomePerYear)} per year)`;
   updateFactors(view);

@@ -1,6 +1,6 @@
 /**
- * The view is a ready to display snapshot of the game for a UI. It contains the stored
- * state plus values calculated from it, so a UI never has to do any physics itself.
+ * The view is a ready to display snapshot of the game. It contains the stored state plus
+ * values calculated from it, so no physics has to be done outside the engine.
  */
 import {
   FACTORS,
@@ -12,6 +12,7 @@ import {
   type FactorId,
 } from './factors';
 import { incomePerYear, upgradeCost } from './economy';
+import { CARDS } from './education';
 import { GAMEPLAY } from './gameplay';
 import { MILESTONES, OBJECTIVES, createDebrief, type Debrief, type Milestone } from './progression';
 import { regionClimates, type RegionClimate } from './regions';
@@ -22,6 +23,7 @@ import {
   energyImbalance,
   equilibriumWarming,
   feedbackBreakdown,
+  ozoneLossPercent,
   radiationBudget,
   type Emissions,
   type FeedbackBreakdown,
@@ -50,7 +52,7 @@ export interface FactorView {
   readonly level: number;
   readonly maxLevel: number;
   /** The level that matches what this activity releases in the real world today. */
-  readonly presentDayLevel: number;
+  readonly presentDayLevel: number | null;
   readonly unlocked: boolean;
   /** What must happen to unlock it (all met once unlocked). */
   readonly requirements: readonly RequirementView[];
@@ -74,7 +76,23 @@ export interface ObjectiveView {
   readonly done: boolean;
 }
 
+export interface CardView {
+  readonly id: string;
+  readonly title: string;
+  readonly text: string;
+  readonly source: string;
+  readonly shown: boolean;
+}
+
+export interface OzoneView {
+  readonly cfcConcentration: number;
+  readonly lossPercent: number;
+  readonly realWorldLossPercent: number;
+}
+
 export interface GameView {
+  readonly cards: readonly CardView[];
+  readonly ozone: OzoneView;
   readonly dollars: number;
   readonly incomePerYear: number;
   readonly milestones: readonly MilestoneView[];
@@ -119,7 +137,7 @@ function selectFactors(state: GameState): FactorView[] {
       description: factor.description,
       level,
       maxLevel: GAMEPLAY.maxFactorLevel.value,
-      presentDayLevel: GAMEPLAY.presentDayLevel.value,
+      presentDayLevel: factor.presentDay ? GAMEPLAY.presentDayLevel.value : null,
       unlocked,
       requirements: factor.requires.map((r) => ({
         text: describeRequirement(r),
@@ -143,6 +161,18 @@ export function selectView(state: GameState): GameView {
   const imbalance = energyImbalance(forcing.total, warming);
 
   return {
+    cards: CARDS.map((c) => ({
+      id: c.id,
+      title: c.title,
+      text: c.text,
+      source: c.source,
+      shown: state.progress.cardsShown.includes(c.id),
+    })),
+    ozone: {
+      cfcConcentration: gas.cfc,
+      lossPercent: ozoneLossPercent(gas.cfc),
+      realWorldLossPercent: SCIENCE.ozoneLossToday.value,
+    },
     dollars: state.dollars,
     incomePerYear: incomePerYear(state.factors),
     milestones: MILESTONES.map((m) => ({

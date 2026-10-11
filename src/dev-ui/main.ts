@@ -1,6 +1,12 @@
-// Temporary numbers page. Only exists to check the engine; the real UI is built
-// separately on top of the same engine interface.
-import { ENGINE_VERSION, createGame, type GameEvent, type GameView } from '../core';
+// Numbers page: shows every value the engine calculates, for checking the simulation.
+import {
+  ENGINE_VERSION,
+  SCENARIOS,
+  createGame,
+  type GameEvent,
+  type GameView,
+  type ScenarioId,
+} from '../core';
 import {
   SPEEDS,
   createFactorList,
@@ -21,6 +27,16 @@ element('#app').innerHTML = `
       <select id="speed">${SPEEDS.map((s) => `<option value="${s}">${s} years per second</option>`).join('')}</select>
     </label>
     <button id="reset">Reset</button>
+    <select id="scenario">
+      <option value="">Jump to...</option>
+      ${SCENARIOS.map((s) => `<option value="${s.id}">${s.name}</option>`).join('')}
+    </select>
+  </p>
+  <p>
+    <button id="save">Save</button>
+    <button id="load">Load</button>
+    <span id="save-message"></span><br />
+    <textarea id="save-text" rows="3" cols="80" placeholder="Saved game text"></textarea>
   </p>
   <div id="factors"></div>
   <pre id="preview">Hover over a + button to preview an upgrade.</pre>
@@ -53,6 +69,23 @@ element('#step').addEventListener('click', () => addNews(game.advance(1)));
 element('#reset').addEventListener('click', () => {
   const result = game.dispatch({ type: 'reset' });
   if (result.ok) addNews(result.events);
+});
+
+const scenarioSelect = element<HTMLSelectElement>('#scenario');
+scenarioSelect.addEventListener('change', () => {
+  if (scenarioSelect.value) game.loadScenario(scenarioSelect.value as ScenarioId);
+  scenarioSelect.value = '';
+});
+
+const saveText = element<HTMLTextAreaElement>('#save-text');
+const saveMessage = element<HTMLSpanElement>('#save-message');
+element('#save').addEventListener('click', () => {
+  saveText.value = game.save();
+  saveMessage.textContent = 'Saved below.';
+});
+element('#load').addEventListener('click', () => {
+  const result = game.load(saveText.value);
+  saveMessage.textContent = result.ok ? 'Loaded.' : result.error;
 });
 
 const previewBox = element<HTMLPreElement>('#preview');
@@ -94,9 +127,18 @@ function render(view: GameView): void {
     `CO2      ${fmt(c.co2, 1)} parts per million`,
     `Methane  ${fmt(c.ch4, 0)} parts per billion`,
     `Nitrous oxide ${fmt(c.n2o, 1)} parts per billion`,
+    `CFCs     ${fmt(c.cfc * 1000, 0)} parts per trillion`,
     '',
     'Extra energy trapped (watts per square meter)',
-    `  CO2 ${fmt(f.co2)}   methane ${fmt(f.ch4)}   nitrous oxide ${fmt(f.n2o)}   total ${fmt(f.total)}`,
+    `  CO2 ${fmt(f.co2)}   methane ${fmt(f.ch4)}   nitrous oxide ${fmt(f.n2o)}   CFCs ${fmt(f.cfc)}   total ${fmt(f.total)}`,
+    '',
+    `Ozone layer: ${fmt(view.ozone.lossPercent, 2)}% thinner (real world today about ${view.ozone.realWorldLossPercent}%)`,
+    `Science cards seen: ${
+      view.cards
+        .filter((card) => card.shown)
+        .map((card) => card.id)
+        .join(', ') || 'none'
+    }`,
     '',
     'Energy flows (watts per square meter)',
     `  incoming sunlight   ${fmt(r.incomingSolar, 1)}`,

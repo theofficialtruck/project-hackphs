@@ -12,6 +12,7 @@ import { GAMEPLAY } from './gameplay';
 import {
   concentrations,
   effectiveRadiativeForcing,
+  ozoneLossPercent,
   stepClimate,
   stepGasCycle,
   type Emissions,
@@ -28,6 +29,7 @@ export interface UpgradePreview {
   readonly concentrationChange: GasConcentrations;
   readonly forcingChange: number;
   readonly warmingChange: number;
+  readonly ozoneLossChange: number;
 }
 
 function project(state: GameState, factors: FactorStates, years: number) {
@@ -67,8 +69,10 @@ export function previewUpgrade(state: GameState, factor: FactorId): UpgradePrevi
       co2: withUpgrade.c.co2 - without.c.co2,
       ch4: withUpgrade.c.ch4 - without.c.ch4,
       n2o: withUpgrade.c.n2o - without.c.n2o,
+      cfc: withUpgrade.c.cfc - without.c.cfc,
     },
     forcingChange: withUpgrade.forcing - without.forcing,
     warmingChange: withUpgrade.warming - without.warming,
+    ozoneLossChange: ozoneLossPercent(withUpgrade.c.cfc) - ozoneLossPercent(without.c.cfc),
   };
 }

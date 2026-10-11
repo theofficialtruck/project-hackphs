@@ -5,6 +5,9 @@ import { GAMEPLAY } from './gameplay';
 import { advanceTicks } from './simulation';
 import { createInitialState } from './state';
 import { stateWithLevels } from './test-helpers';
+import type { GameEvent } from './events';
+
+const withoutCards = (events: readonly GameEvent[]) => events.filter((e) => e.type !== 'cardShown');
 
 describe('upgrading and downgrading factors', () => {
   it('raises the level of an unlocked factor', () => {
@@ -12,7 +15,9 @@ describe('upgrading and downgrading factors', () => {
     expect(result.ok).toBe(true);
     if (result.ok) {
       expect(result.state.factors.coal.level).toBe(1);
-      expect(result.events).toEqual([{ type: 'factorUpgraded', factor: 'coal', level: 1 }]);
+      expect(withoutCards(result.events)).toEqual([
+        { type: 'factorUpgraded', factor: 'coal', level: 1 },
+      ]);
     }
   });
 
@@ -40,17 +45,18 @@ describe('upgrading and downgrading factors', () => {
     expect(result).toMatchObject({ ok: false, error: { code: 'UNKNOWN_FACTOR' } });
   });
 
-  it('unlocks another factor when its level requirement is reached', () => {
-    // Cement needs coal at level 2.
+  it('unlocks other factors when their level requirement is reached', () => {
     const state = stateWithLevels({ coal: 1 });
     expect(state.factors.cement.unlocked).toBe(false);
     const result = applyAction(state, { type: 'upgradeFactor', factor: 'coal' });
     expect(result.ok).toBe(true);
     if (result.ok) {
       expect(result.state.factors.cement.unlocked).toBe(true);
-      expect(result.events).toEqual([
+      expect(result.state.factors.refrigerants.unlocked).toBe(true);
+      expect(withoutCards(result.events)).toEqual([
         { type: 'factorUpgraded', factor: 'coal', level: 2 },
         { type: 'factorUnlocked', factor: 'cement' },
+        { type: 'factorUnlocked', factor: 'refrigerants' },
       ]);
     }
   });
@@ -66,7 +72,9 @@ describe('upgrading and downgrading factors', () => {
     if (downgraded.ok) {
       expect(downgraded.state.factors.coal.level).toBe(1);
       expect(downgraded.state.factors.cement.unlocked).toBe(true);
-      expect(downgraded.events).toEqual([{ type: 'factorDowngraded', factor: 'coal', level: 1 }]);
+      expect(withoutCards(downgraded.events)).toEqual([
+        { type: 'factorDowngraded', factor: 'coal', level: 1 },
+      ]);
     }
   });
 

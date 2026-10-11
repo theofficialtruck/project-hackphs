@@ -3,6 +3,7 @@ import { SCIENCE } from './constants';
 import { PREINDUSTRIAL_CONCENTRATIONS } from './forcing';
 import {
   GT_CO2_PER_PPM,
+  KT_CFC12_PER_PPB,
   NO_EMISSIONS,
   PREINDUSTRIAL_GAS_CYCLE,
   concentrations,
@@ -26,6 +27,7 @@ function pulse(emissions: Partial<Emissions>): GasCycleState {
     co2: (emissions.co2 ?? 0) / dt,
     ch4: (emissions.ch4 ?? 0) / dt,
     n2o: (emissions.n2o ?? 0) / dt,
+    cfc: (emissions.cfc ?? 0) / dt,
   };
   return stepGasCycle(PREINDUSTRIAL_GAS_CYCLE, rate, dt);
 }
@@ -63,6 +65,18 @@ describe('gas cycle', () => {
     expect(later.n2oExcess / start.n2oExcess).toBeCloseTo(1 / Math.E, 10);
   });
 
+  it('removes extra CFC-12 with a 102 year lifetime', () => {
+    const start = pulse({ cfc: 0.5 * KT_CFC12_PER_PPB });
+    expect(start.cfcExcess).toBeCloseTo(0.5, 3);
+    const later = stepGasCycle(start, NO_EMISSIONS, SCIENCE.cfc12PerturbationLifetime.value);
+    expect(later.cfcExcess / start.cfcExcess).toBeCloseTo(1 / Math.E, 10);
+  });
+
+  it('needs about 20,700 thousand tonnes of CFC-12 to raise it by 1 part per billion', () => {
+    expect(KT_CFC12_PER_PPB).toBeGreaterThan(20500);
+    expect(KT_CFC12_PER_PPB).toBeLessThan(20900);
+  });
+
   it('reaches a steady methane level when emissions stay constant', () => {
     const emissions: Emissions = { ...NO_EMISSIONS, ch4: 100 };
     const steady = run(PREINDUSTRIAL_GAS_CYCLE, emissions, 300);
@@ -79,12 +93,13 @@ describe('gas cycle', () => {
   });
 
   it('gives the same result for one 10 year step as for ten 1 year steps', () => {
-    const emissions: Emissions = { co2: 40, ch4: 300, n2o: 7 };
+    const emissions: Emissions = { co2: 40, ch4: 300, n2o: 7, cfc: 200 };
     const oneStep = stepGasCycle(PREINDUSTRIAL_GAS_CYCLE, emissions, 10);
     const tenSteps = run(PREINDUSTRIAL_GAS_CYCLE, emissions, 10);
     expect(concentrations(oneStep).co2).toBeCloseTo(concentrations(tenSteps).co2, 10);
     expect(oneStep.ch4Excess).toBeCloseTo(tenSteps.ch4Excess, 10);
     expect(oneStep.n2oExcess).toBeCloseTo(tenSteps.n2oExcess, 10);
+    expect(oneStep.cfcExcess).toBeCloseTo(tenSteps.cfcExcess, 10);
   });
 
   it('rejects invalid input', () => {

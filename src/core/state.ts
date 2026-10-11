@@ -51,6 +51,7 @@ export interface GameState {
 export interface ProgressState {
   readonly milestonesReached: readonly number[];
   readonly objectivesCompleted: readonly string[];
+  readonly cardsShown: readonly string[];
   readonly cumulativeCo2: number;
   readonly endedAtYear: number | null;
 }
@@ -82,6 +83,7 @@ export function createInitialState(): GameState {
     progress: {
       milestonesReached: [],
       objectivesCompleted: [],
+      cardsShown: [],
       cumulativeCo2: 0,
       endedAtYear: null,
     },

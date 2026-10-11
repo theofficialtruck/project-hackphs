@@ -8,8 +8,8 @@ import {
 } from './forcing';
 
 // IPCC AR6 WG1 Chapter 7, Table 7.5: concentrations in 2019 and ERF relative to 1750.
-const AR6_2019: GasConcentrations = { co2: 409.9, ch4: 1866.3, n2o: 332.1 };
-const AR6_2019_ERF = { co2: 2.156, ch4: 0.544, n2o: 0.208 };
+const AR6_2019: GasConcentrations = { co2: 409.9, ch4: 1866.3, n2o: 332.1, cfc: 0.5031 };
+const AR6_2019_ERF = { co2: 2.156, ch4: 0.544, n2o: 0.208, cfc: 0.18 };
 
 const withCo2 = (co2: number): GasConcentrations => ({ ...PREINDUSTRIAL_CONCENTRATIONS, co2 });
 
@@ -27,7 +27,8 @@ describe('effective radiative forcing', () => {
     expect(f.co2).toBeCloseTo(AR6_2019_ERF.co2, 2);
     expect(f.ch4).toBeCloseTo(AR6_2019_ERF.ch4, 2);
     expect(f.n2o).toBeCloseTo(AR6_2019_ERF.n2o, 2);
-    expect(f.total).toBeCloseTo(f.co2 + f.ch4 + f.n2o, 10);
+    expect(f.cfc).toBeCloseTo(AR6_2019_ERF.cfc, 3);
+    expect(f.total).toBeCloseTo(f.co2 + f.ch4 + f.n2o + f.cfc, 10);
   });
 
   it('gives the AR6 assessed forcing (3.93 W/m^2) for doubled CO2', () => {
@@ -57,7 +58,14 @@ describe('effective radiative forcing', () => {
   });
 
   it('rejects impossible concentrations', () => {
-    expect(() => effectiveRadiativeForcing({ co2: 0, ch4: 700, n2o: 270 })).toThrow(RangeError);
-    expect(() => effectiveRadiativeForcing({ co2: 400, ch4: -1, n2o: 270 })).toThrow(RangeError);
+    expect(() => effectiveRadiativeForcing({ co2: 0, ch4: 700, n2o: 270, cfc: 0 })).toThrow(
+      RangeError,
+    );
+    expect(() => effectiveRadiativeForcing({ co2: 400, ch4: -1, n2o: 270, cfc: 0 })).toThrow(
+      RangeError,
+    );
+    expect(() =>
+      effectiveRadiativeForcing({ co2: 400, ch4: 700, n2o: 270, cfc: Number.NaN }),
+    ).toThrow(RangeError);
   });
 });

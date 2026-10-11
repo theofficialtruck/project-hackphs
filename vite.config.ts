@@ -3,8 +3,7 @@ import { defineConfig } from 'vitest/config';
 export default defineConfig({
   build: {
     rolldownOptions: {
-      // Two pages: index.html belongs to the final UI, dev.html is the
-      // temporary development/testing UI.
+      // Two pages: the globe page (index.html) and the numbers page (dev.html).
       input: {
         main: 'index.html',
         dev: 'dev.html',
