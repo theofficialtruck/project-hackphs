@@ -12,12 +12,19 @@ The engine (simulation, game state, mechanics) is plain TypeScript and runs enti
 
 - Based on formulas from real life climate scientists to simulate data
 - Fun interactive gameplay
-- An OST tuned with elevenlabs
+- An OST tuned with Elevenlabs
 
 ## What We Used
 
-We used [complete this section with the tools/libraries used]
-
+- TypeScript
+- View3
+- Audio made with Elevenlabs
+- Three.js - 3d shaper
+- Globe.gl - 3d mapping
+- World-Atlas - geographic data on countries
+- Topojson-client - formatting
+- d3-geo - transforms the spherical globe into a 2d circle
+  
 ## Requirements
 
 - Node.js `^22.13.0` or `>=24.0.0`
