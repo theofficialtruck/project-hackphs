@@ -25,6 +25,8 @@ const GLOBAL_METHANE_BUDGET_2020 =
   'Saunois et al. (2020), The Global Methane Budget 2000-2017, Earth Syst. Sci. Data 12, 1561, ' +
   'bottom up estimates for 2008-2017, https://essd.copernicus.org/articles/12/1561/2020/';
 
+const AR6_SPM =
+  'IPCC AR6 WG1 Summary for Policymakers, https://www.ipcc.ch/report/ar6/wg1/chapter/summary-for-policymakers/';
 const WMO_OZONE_2022 =
   'WMO/UNEP Scientific Assessment of Ozone Depletion 2022, Twenty Questions and Answers About the Ozone Layer, ' +
   'https://csl.noaa.gov/assessments/ozone/2022/twentyquestions/';
@@ -86,6 +88,36 @@ export const SCIENCE = {
     unit: 'parts per billion',
     description: 'Nitrous oxide concentration in 1750.',
     source: `${AR6_CH7}, Table 7.5`,
+    kind: 'measured',
+  },
+
+  // ------------------------------------------------------- real world today
+  co2Concentration2019: {
+    value: 410,
+    unit: 'parts per million',
+    description: 'CO2 in the air in 2019 (yearly average).',
+    source: `${AR6_SPM}, A.1.1`,
+    kind: 'measured',
+  },
+  ch4Concentration2019: {
+    value: 1866,
+    unit: 'parts per billion',
+    description: 'Methane in the air in 2019 (yearly average).',
+    source: `${AR6_SPM}, A.1.1`,
+    kind: 'measured',
+  },
+  n2oConcentration2019: {
+    value: 332,
+    unit: 'parts per billion',
+    description: 'Nitrous oxide in the air in 2019 (yearly average).',
+    source: `${AR6_SPM}, A.1.1`,
+    kind: 'measured',
+  },
+  observedWarming2011To2020: {
+    value: 1.09,
+    unit: 'degrees C',
+    description: 'How much warmer Earth was in 2011 to 2020 than in 1850 to 1900.',
+    source: `${AR6_SPM}, A.1.2 (1.09, very likely 0.95 to 1.20)`,
     kind: 'measured',
   },
 

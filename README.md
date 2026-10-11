@@ -20,8 +20,8 @@ npm install
 npm run dev
 ```
 
-Then open <http://localhost:5173/> for the 3D globe page, or <http://localhost:5173/dev.html> for
-the numbers page. Both are temporary pages for testing the engine; the final UI replaces them.
+Then open <http://localhost:5173/> for the game, or <http://localhost:5173/dev.html> for the
+numbers page, which shows every value the engine calculates.
 
 ## Scripts
 
@@ -43,9 +43,9 @@ the numbers page. Both are temporary pages for testing the engine; the final UI 
 
 ```text
 src/core/      Game engine: simulation, state, mechanics (no browser APIs)
-src/dev-ui/    Temporary pages for testing the engine
-index.html     Globe page (temporary, replaced by the final UI)
-dev.html       Numbers page (temporary)
+src/dev-ui/    Game screen (main.ts) and numbers page (numbers-page.ts)
+index.html     The game
+dev.html       Numbers page, for checking the engine
 tests/         Project wide tests (for example: keyboard characters only)
 scripts/       Data build scripts
 ```

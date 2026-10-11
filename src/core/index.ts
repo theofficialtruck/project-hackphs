@@ -6,7 +6,7 @@
  */
 
 /** Version of the engine interface. Bumped when the interface changes. */
-export const ENGINE_VERSION = '0.7.0';
+export const ENGINE_VERSION = '0.8.0';
 
 export { createGame, MAX_YEARS_PER_ADVANCE } from './game';
 export type { DispatchResult, Game, GameListener } from './game';
@@ -16,7 +16,7 @@ export type { FactorId } from './factors';
 export { GAMEPLAY } from './gameplay';
 export type { FactorView, GameView, MilestoneView, ObjectiveView, RequirementView } from './view';
 export type { Debrief, Milestone } from './progression';
-export type { CardView, OzoneView } from './view';
+export type { CardView, OzoneView, RealWorldView } from './view';
 export type { UpgradePreview } from './preview';
 export { SAVE_VERSION, loadGame, saveGame } from './save';
 export type { LoadResult } from './save';

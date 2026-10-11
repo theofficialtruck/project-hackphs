@@ -222,6 +222,12 @@ h2 {
 .tick.reached {
   background: var(--ink);
 }
+.tick.today {
+  background: var(--amber);
+}
+.mark.today {
+  color: var(--amber);
+}
 .speed {
   grid-column: 1 / -1;
   display: flex;

@@ -50,13 +50,15 @@ interface Preview {
   affordable: boolean;
   years: number;
   extraEmissionsPerYear: Emissions;
-  concentrationChange: { co2: number; ch4: number; n2o: number };
+  concentrationChange: { co2: number; ch4: number; n2o: number; cfc?: number };
   forcingChange: number;
   warmingChange: number;
+  ozoneLossChange?: number;
 }
 interface ExtraView {
   dollars: number;
   incomePerYear: number;
+  savingsCap: number;
   endingWarming: number;
   ended: boolean;
   debrief: DebriefInfo | null;
@@ -115,6 +117,7 @@ function describeEmissions(e: Emissions): string {
   if (e.co2 > 0) parts.push(`${fmt(e.co2, 1)} billion tonnes of CO2`);
   if (e.ch4 > 0) parts.push(`${fmt(e.ch4, 1)} million tonnes of methane`);
   if (e.n2o > 0) parts.push(`${fmt(e.n2o, 2)} million tonnes of nitrogen as nitrous oxide`);
+  if (e.cfc > 0) parts.push(`${fmt(e.cfc, 0)} thousand tonnes of CFCs`);
   return parts.length > 0 ? parts.join(', ') : 'nothing';
 }
 
@@ -124,12 +127,17 @@ function describePreview(p: Preview): string {
   if (c.co2 > 0.05) gases.push(`CO2 +${fmt(c.co2, 1)} parts per million`);
   if (c.ch4 > 0.5) gases.push(`methane +${fmt(c.ch4, 0)} parts per billion`);
   if (c.n2o > 0.05) gases.push(`nitrous oxide +${fmt(c.n2o, 1)} parts per billion`);
-  return [
+  if ((c.cfc ?? 0) > 0.0005) gases.push(`CFCs +${fmt((c.cfc ?? 0) * 1000, 0)} parts per trillion`);
+  const lines = [
     `1. Releases ${describeEmissions(p.extraEmissionsPerYear)} more per year`,
     `2. After ${p.years} years: ${gases.join(', ') || 'no visible change in gas levels'}`,
     `3. Extra energy trapped: +${fmt(p.forcingChange, 3)} watts per square meter`,
     `4. Extra warming: +${fmt(p.warmingChange, 3)} degrees C`,
-  ].join('\n');
+  ];
+  if ((p.ozoneLossChange ?? 0) > 0) {
+    lines.push(`Separately, the ozone layer gets ${fmt(p.ozoneLossChange ?? 0)}% thinner`);
+  }
+  return lines.join('\n');
 }
 
 // ---- State -------------------------------------------------------------------------------
@@ -358,8 +366,12 @@ function renderFactors(view: AnyView): void {
             ? `Next level: ${Math.floor(f.upgradeCost)} dollars`
             : '')
       : '';
+    const today =
+      f.presentDayLevel === null
+        ? 'Not used in the real world today.'
+        : `Level ${f.presentDayLevel} is what the real world releases today.`;
     detail.textContent = f.unlocked
-      ? `Level ${f.presentDayLevel} is what the real world releases today. ${f.description}`
+      ? `${today} ${f.description}`
       : `Locked. ${f.requirements.map((r) => `[${r.met ? 'x' : ' '}] ${r.text}`).join('  ')}`;
   }
 }
@@ -367,7 +379,8 @@ function renderFactors(view: AnyView): void {
 // ---- Events, cards, debrief --------------------------------------------------------------
 function handle(events: readonly UiEvent[]): void {
   for (const e of events) {
-    if (e.type === 'milestoneReached' || e.type === 'objectiveCompleted') cards.push(e);
+    if (e.type === 'milestoneReached' || e.type === 'objectiveCompleted' || e.type === 'cardShown')
+      cards.push(e);
     if (e.type === 'gameEnded') renderDebrief(getView());
     if (e.type === 'gameReset') {
       gameOver = false;
@@ -397,6 +410,11 @@ function nextCard(): void {
     $('#card-title').textContent = `Goal done: +${e.reward} dollars`;
     $('#card-text').textContent = `${o?.text ?? ''} ${o?.lesson ?? ''}`;
     $('#card-source').textContent = '';
+  } else if (e.type === 'cardShown') {
+    const c = view.cards.find((x) => x.id === e.card);
+    $('#card-title').textContent = c?.title ?? '';
+    $('#card-text').textContent = c?.text ?? '';
+    $('#card-source').textContent = c ? `Source: ${c.source}` : '';
   }
 }
 $('#card-ok').addEventListener('click', nextCard);
@@ -454,9 +472,12 @@ $('#country-close').addEventListener('click', () => {
 function renderScience(view: AnyView): void {
   if (!$<HTMLDetailsElement>('#science').open) return;
   const w = (n: number) => `${fmt(n, 2)} watts per square meter`;
+  const real = view.realWorld;
   $('#science-text').textContent = [
-    `CO2 in the air: ${fmt(view.concentrations.co2, 0)} parts per million`,
-    `Methane: ${fmt(view.concentrations.ch4, 0)} parts per billion`,
+    `CO2 in the air: ${fmt(view.concentrations.co2, 0)} parts per million (real world 2019: ${real.co2})`,
+    `Methane: ${fmt(view.concentrations.ch4, 0)} parts per billion (real world 2019: ${real.ch4})`,
+    `Nitrous oxide: ${fmt(view.concentrations.n2o, 0)} parts per billion (real world 2019: ${real.n2o})`,
+    `Ozone layer: ${fmt(view.ozone.lossPercent, 1)}% thinner (real world today: about ${view.ozone.realWorldLossPercent}%)`,
     `Extra energy trapped: ${w(view.forcing.total)}`,
     `Energy Earth is still gaining: ${w(view.energyImbalance)}`,
     `Warming locked in: +${fmt(view.equilibriumWarming)} degrees C`,
@@ -478,6 +499,8 @@ track.insertAdjacentHTML(
         `<i class="tick" data-w="${m.warming}" style="left:${pctOf(m.warming)}" title="${m.title}"></i>`,
     )
     .join('') +
+    `<i class="tick today" style="left:${pctOf(getView().realWorld.warming)}" title="Real world, 2011 to 2020: +${getView().realWorld.warming} degrees C"></i>` +
+    `<span class="mark today" style="left:${pctOf(getView().realWorld.warming)}">Today</span>` +
     [5, 10, 15, 20]
       .map(
         (w) => `<span class="mark${w === 20 ? ' last' : ''}" style="left:${pctOf(w)}">+${w}</span>`,
@@ -514,7 +537,10 @@ function render(view: AnyView): void {
   $('#income').hidden = !hasMoney;
   if (view.dollars !== undefined && view.incomePerYear !== undefined) {
     $('#money').textContent = `${Math.floor(view.dollars)} dollars`;
-    $('#income').textContent = `+${Math.floor(view.incomePerYear)} dollars per year`;
+    $('#income').textContent =
+      view.savingsCap !== undefined && view.dollars >= view.savingsCap
+        ? `Savings full at ${Math.floor(view.savingsCap)} dollars. Upgrade to raise the limit`
+        : `+${Math.floor(view.incomePerYear)} dollars per year`;
   }
   renderFactors(view);
   renderCountry(view);

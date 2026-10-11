@@ -49,6 +49,16 @@ describe('science cards', () => {
     expect(shown).toContain('warming-lag');
   });
 
+  it('compare CO2 with the real record once it passes the 2019 level', () => {
+    const { state, events } = advanceTicks(
+      stateWithLevels({ coal: 10, deforestation: 10 }),
+      12 * 80,
+    );
+    expect(cardsIn(events)).toContain('co2-record');
+    expect(state.progress.cardsShown).toContain('co2-record');
+    expect(cardsIn(advanceTicks(createInitialState(), 12 * 80).events)).not.toContain('co2-record');
+  });
+
   it('warn about the thinning ozone layer once CFCs reach real world levels', () => {
     const { events } = advanceTicks(stateWithLevels({ coal: 2, refrigerants: 10 }), 12 * 60);
     expect(cardsIn(events)).toContain('ozone-today');
