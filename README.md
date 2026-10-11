@@ -1,6 +1,6 @@
 # Ozone Inc.
 
-An educational science game for high school students (grades 9 to 10). The player controls Earth's
+Ozone Inc. is an educational science game for high school students (grades 9 to 10). The player controls Earth's
 atmosphere and tries to make the planet warmer by strengthening the greenhouse effect: unlocking
 and upgrading real human activities such as coal power, livestock farming and fertilizer use. Every
 temperature change comes from a simplified but scientifically sourced climate model, so the player
