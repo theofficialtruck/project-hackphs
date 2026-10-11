@@ -51,6 +51,14 @@ export const GAMEPLAY = {
     source: 'Game design choice: bigger industries earn more, so growth speeds up.',
     kind: 'gameplay',
   },
+  savingsYears: {
+    value: 20,
+    unit: 'years of income',
+    description: 'Money stops building up once savings reach this many years of income.',
+    source:
+      'Game design choice: stops players from waiting at high speed to collect unlimited money, while the most expensive upgrade still fits under the limit.',
+    kind: 'gameplay',
+  },
   costGrowth: {
     value: 1.3,
     unit: 'times per level',
@@ -81,7 +89,7 @@ export const GAMEPLAY = {
     unit: 'degrees C',
     description: 'The game ends when global warming reaches this level.',
     source:
-      'Game design choice: a long-run extreme scenario, well above the 2081–2100 ranges assessed by the IPCC.',
+      'Game design choice: far past the 11 to 12 degrees C at which heat stress would make the places where most people live too hot for the human body (Sherwood and Huber, 2010, PNAS 107, 9552).',
     kind: 'gameplay',
   },
   cfcPerLevel: {

@@ -232,6 +232,7 @@ h2 {
   top: 30px;
   color: var(--amber);
   white-space: nowrap;
+  transform: translateX(-6px);
 }
 .speed {
   grid-column: 1 / -1;
@@ -501,7 +502,15 @@ summary {
     grid-template-columns: 1fr auto;
   }
   .stats {
-    display: none;
+    grid-column: 1 / -1;
+    grid-row: 2;
+    justify-self: start;
+    gap: 12px;
+    font-size: 13px;
+  }
+  #year,
+  #money {
+    white-space: nowrap;
   }
   #panel {
     top: auto;
@@ -510,7 +519,7 @@ summary {
     right: 12px;
   }
   #side {
-    top: 155px;
+    top: 214px;
     bottom: calc(42vh + 24px);
     width: min(320px, 45vw);
   }

@@ -33,10 +33,10 @@ export function describePreview(p: UpgradePreview, name: string): string {
   if (p.concentrationChange.n2o > 0.05)
     gases.push(`nitrous oxide +${fmt(p.concentrationChange.n2o, 1)} parts per billion`);
   if (p.concentrationChange.cfc > 0.0005)
-    gases.push(`CFCs +${fmt(p.concentrationChange.cfc, 4)} parts per billion`);
+    gases.push(`CFCs +${fmt(p.concentrationChange.cfc * 1000, 0)} parts per trillion`);
   const lines = [
     `${name}: next level costs ${Math.round(p.cost)} dollars${p.affordable ? '' : ' (not enough money yet)'}`,
-    `1. Releases ${describeEmissions(p.extraEmissionsPerYear)} more`,
+    `1. Releases an extra ${describeEmissions(p.extraEmissionsPerYear)}`,
     `2. After ${p.years} years: ${gases.join(', ')}`,
     `3. Extra energy trapped: +${fmt(p.forcingChange, 3)} watts per square meter`,
     `4. Extra warming: +${fmt(p.warmingChange, 3)} degrees C`,

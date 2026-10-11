@@ -133,7 +133,7 @@ function describePreview(p: Preview): string {
   if (c.co2 > 0.05) gases.push(`CO2 +${fmt(c.co2, 1)} parts per million`);
   if (c.ch4 > 0.5) gases.push(`methane +${fmt(c.ch4, 0)} parts per billion`);
   if (c.n2o > 0.05) gases.push(`nitrous oxide +${fmt(c.n2o, 1)} parts per billion`);
-  if (c.cfc > 0.0005) gases.push(`CFCs +${fmt(c.cfc, 4)} parts per billion`);
+  if (c.cfc > 0.0005) gases.push(`CFCs +${fmt(c.cfc * 1000, 0)} parts per trillion`);
   const lines = [
     `1. Releases ${describeEmissions(p.extraEmissionsPerYear)} more per year`,
     `2. After ${p.years} years: ${gases.join(', ') || 'no visible change in gas levels'}`,
@@ -242,7 +242,7 @@ $('#start').addEventListener('click', () => {
 const playButton = $<HTMLButtonElement>('#play');
 const speedInput = $<HTMLInputElement>('#speed');
 speedInput.addEventListener('input', () => {
-  // Logarithmic: the slider moves evenly from 0.5 to 100 years per second.
+  // Logarithmic: the slider moves evenly from 0.5 to 1000 years per second.
   const raw = MIN_SPEED * (MAX_SPEED / MIN_SPEED) ** (Number(speedInput.value) / 100);
   speed = raw >= 10 ? Math.round(raw) : Math.round(raw * 10) / 10;
   paintClock();
@@ -405,7 +405,7 @@ function handle(events: readonly UiEvent[]): void {
       if (milestone) {
         appendUpdate(
           'milestone',
-          `+${event.warming} degrees C: ${milestone.title}`,
+          `+${event.warming} degree${event.warming === 1 ? '' : 's'} C: ${milestone.title}`,
           milestone.text,
           milestone.source,
         );
@@ -416,17 +416,13 @@ function handle(events: readonly UiEvent[]): void {
         appendUpdate(
           'goal',
           `Goal complete: +${event.reward} dollars`,
-          `${objective.text} ${objective.lesson}`,
+          `${objective.text}. ${objective.lesson}`,
         );
       }
     } else if (event.type === 'cardShown') {
       const card = view.cards.find((item) => item.id === event.card);
       if (card) {
-        const title =
-          card.id === 'ozone-not-warming'
-            ? `Myth / Reality: ${card.title.replace(/^Myth: /, '')}`
-            : card.title;
-        appendUpdate('science', title, card.text, card.source);
+        appendUpdate('science', card.title, card.text, card.source);
       }
     } else if (event.type === 'gameEnded') {
       playing = false;
@@ -527,18 +523,20 @@ function renderOzone(view: AnyView): void {
   $('#ozone-loss').textContent = `${fmt(ozone.lossPercent, 2)}% thinner`;
   $('#ozone-copy').textContent =
     `Ozone layer (blocks UV sunlight). Real world since 2010: about ${fmt(ozone.realWorldLossPercent, 1)}% thinner.`;
-  const gauge = $<HTMLElement>('#ozone-gauge-fill');
-  gauge.style.width = `${Math.min(100, (ozone.lossPercent / 5) * 100)}%`;
-  gauge.setAttribute('aria-valuenow', String(ozone.lossPercent));
+  $<HTMLElement>('#ozone-gauge-fill').style.width =
+    `${Math.min(100, (ozone.lossPercent / 5) * 100)}%`;
+  $('#ozone-gauge').setAttribute('aria-valuenow', fmt(Math.min(5, ozone.lossPercent)));
 }
 
+let scienceNotesShown = -1;
 function renderScienceNotes(view: AnyView): void {
-  const notes = $('#science-notes');
-  notes.innerHTML = view.cards
-    .filter((card) => card.shown)
+  const shown = (view.cards ?? []).filter((card) => card.shown);
+  if (shown.length === scienceNotesShown) return;
+  scienceNotesShown = shown.length;
+  $('#science-notes').innerHTML = shown
     .map(
       (card) =>
-        `<article class="science-note${card.id === 'ozone-not-warming' ? ' myth-card' : ''}"><h4>${card.id === 'ozone-not-warming' ? 'Myth / Reality: ' : ''}${card.title}</h4><p>${card.text}</p><small>${card.source}</small></article>`,
+        `<article class="science-note${card.id === 'ozone-not-warming' ? ' myth-card' : ''}"><h4>${card.title}</h4><p>${card.text}</p><small>${card.source}</small></article>`,
     )
     .join('');
 }

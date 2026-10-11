@@ -12,7 +12,6 @@ export function incomePerYear(states: FactorStates): number {
   return GAMEPLAY.baseIncome.value + GAMEPLAY.incomePerLevel.value * levels;
 }
 
-/** Maximum savings from ordinary income: twenty years at the current income rate. */
 export function savingsCap(states: FactorStates): number {
-  return incomePerYear(states) * 20;
+  return GAMEPLAY.savingsYears.value * incomePerYear(states);
 }

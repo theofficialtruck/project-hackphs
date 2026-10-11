@@ -6,6 +6,8 @@ import { concentrations } from './science';
 import { TICKS_PER_YEAR, type GameState } from './state';
 
 const SPM = 'IPCC AR6 WG1 Summary for Policymakers';
+const HEAT_STRESS =
+  'Sherwood and Huber (2010), An adaptability limit to climate change due to heat stress, PNAS 107, 9552-9555';
 
 export interface Milestone {
   readonly warming: number;
@@ -55,13 +57,13 @@ export const MILESTONES: readonly Milestone[] = [
     warming: 7,
     title: 'Dangerous heat reaches some regions',
     text: 'At about 7 degrees C of global warming, combinations of heat and humidity could exceed the human survival limit in some regions.',
-    source: 'Sherwood and Huber (2010), Proceedings of the National Academy of Sciences',
+    source: HEAT_STRESS,
   },
   {
     warming: 11,
     title: 'Dangerous heat reaches most people',
     text: 'At about 11 to 12 degrees C of global warming, combinations of heat and humidity could exceed the human survival limit across regions where most people live today.',
-    source: 'Sherwood and Huber (2010), Proceedings of the National Academy of Sciences',
+    source: HEAT_STRESS,
   },
 ];
 

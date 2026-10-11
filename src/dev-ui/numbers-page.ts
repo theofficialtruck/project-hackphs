@@ -40,7 +40,7 @@ function render(view: GameView): void {
         const item = document.createElement('article');
         if (card.id === 'ozone-not-warming') item.classList.add('myth-card');
         const title = document.createElement('h3');
-        title.textContent = `${card.id === 'ozone-not-warming' ? 'Myth / Reality: ' : ''}${card.title}`;
+        title.textContent = card.title;
         const body = document.createElement('p');
         body.textContent = card.text;
         const source = document.createElement('small');

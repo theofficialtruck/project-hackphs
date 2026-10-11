@@ -97,9 +97,6 @@ export interface RealWorldView {
   readonly n2o: number;
 }
 
-// Warming (2011–2020) and atmospheric levels (2019), IPCC AR6 SPM A.1.1 and A.1.2.
-const REAL_WORLD: RealWorldView = { warming: 1.09, co2: 410, ch4: 1866, n2o: 332 };
-
 export interface GameView {
   readonly cards: readonly CardView[];
   readonly ozone: OzoneView;
@@ -188,7 +185,12 @@ export function selectView(state: GameState): GameView {
     dollars: state.dollars,
     incomePerYear: incomePerYear(state.factors),
     savingsCap: savingsCap(state.factors),
-    realWorld: REAL_WORLD,
+    realWorld: {
+      warming: SCIENCE.observedWarming2011To2020.value,
+      co2: SCIENCE.co2Concentration2019.value,
+      ch4: SCIENCE.ch4Concentration2019.value,
+      n2o: SCIENCE.n2oConcentration2019.value,
+    },
     milestones: MILESTONES.map((m) => ({
       ...m,
       reached: state.progress.milestonesReached.includes(m.warming),

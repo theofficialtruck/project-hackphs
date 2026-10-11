@@ -2,6 +2,7 @@
 // claims come from the cited source.
 import type { GameEvent, StepResult } from './events';
 import {
+  SCIENCE,
   concentrations,
   effectiveRadiativeForcing,
   equilibriumWarming,
@@ -43,10 +44,10 @@ export const CARDS: readonly Card[] = [
   },
   {
     id: 'co2-record',
-    title: 'CO2 reaches a modern record',
-    text: 'CO2 has passed about 410 parts per million, the global level measured in 2019. Most of this rise happened after people began burning fossil fuels and changing forests and land.',
-    source: `${AR6_SPM}, A.1.1`,
-    isTriggered: (state) => concentrations(state.gases).co2 > 410,
+    title: 'Higher than in 2 million years',
+    text: 'CO2 has passed 410 parts per million, the real level in 2019. In the real world, CO2 was then higher than at any time in at least 2 million years, and methane and nitrous oxide were higher than at any time in at least 800,000 years.',
+    source: `${AR6_SPM}, A.1.1 and A.2.1`,
+    isTriggered: (state) => concentrations(state.gases).co2 >= SCIENCE.co2Concentration2019.value,
   },
   {
     id: 'water-vapour',
