@@ -8,10 +8,22 @@ learns how emissions, greenhouse gases, infrared radiation and temperature are a
 
 The engine (simulation, game state, mechanics) is plain TypeScript and runs entirely in the browser. There is no server.
 
+## Features
+
+- Based on formulas from real life climate scientists to simulate data
+- Fun interactive gameplay
+- An OST tuned with elevenlabs
+
+## What We Used
+
+We used [complete this section with the tools/libraries used]
+
 ## Requirements
 
 - Node.js `^22.13.0` or `>=24.0.0`
 - npm
+
+...
 
 ## Getting started
 
