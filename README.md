@@ -18,9 +18,9 @@ The engine (simulation, game state, mechanics) is plain TypeScript and runs enti
 - TypeScript
 - View3
 - Audio made with Elevenlabs
-- Three.js - 3d shaper
+- Three.js - 3d graphics rendering
 - Globe.gl - 3d mapping
-- World-Atlas - geographic data on countries
+- World-Atlas - geographic data on countriy boundaries
 - Topojson-client - formatting
 - d3-geo - transforms the spherical globe into a 2d circle
   
