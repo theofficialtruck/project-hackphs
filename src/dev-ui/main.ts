@@ -143,8 +143,8 @@ function describePreview(p: Preview): string {
 // ---- State -------------------------------------------------------------------------------
 const game = createGame();
 const getView = (): AnyView => game.getView() as AnyView;
-// Warming at which the game-over screen appears. A game design choice made in this screen.
-const UNINHABITABLE_WARMING = 20;
+// Warming at which the game-over screen appears: the engine's ending warming.
+const UNINHABITABLE_WARMING = getView().endingWarming ?? 20;
 // The warming track always runs from 0 to the game-over warming.
 const TRACK_MAX = UNINHABITABLE_WARMING;
 const MIN_SPEED = 0.5;
@@ -157,8 +157,6 @@ let shownWarming = 0;
 let coloredAt = NaN;
 let selectedCountry: string | null = null;
 let hovered: object | null = null;
-const cards: UiEvent[] = [];
-let cardOpen = false;
 
 // ---- Globe -------------------------------------------------------------------------------
 const nameOf = (d: object): string =>
@@ -233,6 +231,7 @@ $('#start').addEventListener('click', () => {
   }, 600);
   $('#hud').hidden = false;
   $('#panel').hidden = false;
+  $('#side').hidden = false;
   render(getView());
 });
 
@@ -285,8 +284,7 @@ function frame(now: number): void {
   const seconds = Math.min((now - last) / 1000, 0.25);
   last = now;
   const view = getView();
-  if (started && playing && !cardOpen && !gameOver && !view.ended)
-    handle(game.advance(seconds * speed));
+  if (started && playing && !gameOver && !view.ended) handle(game.advance(seconds * speed));
   shownWarming += (view.surfaceWarming - shownWarming) * Math.min(1, seconds * 6); // smooth count up
   paintWarming(now);
   requestAnimationFrame(frame);
@@ -376,48 +374,80 @@ function renderFactors(view: AnyView): void {
   }
 }
 
-// ---- Events, cards, debrief --------------------------------------------------------------
+// ---- Events, updates feed, debrief -------------------------------------------------------
+const notesList = $('#notes');
+const MAX_NOTES = 40;
+
 function handle(events: readonly UiEvent[]): void {
   for (const e of events) {
     if (e.type === 'milestoneReached' || e.type === 'objectiveCompleted' || e.type === 'cardShown')
-      cards.push(e);
-    if (e.type === 'gameEnded') renderDebrief(getView());
+      addNote(e);
+    if (e.type === 'gameEnded') {
+      renderDebrief(getView());
+      showGameOver();
+    }
     if (e.type === 'gameReset') {
       gameOver = false;
       $('#gameover').hidden = true;
-      cards.length = 0;
+      notesList.replaceChildren();
+      $('#notes-empty').hidden = false;
       shownWarming = 0;
       selectedCountry = null;
       $('#debrief').hidden = true;
     }
   }
-  nextCard();
 }
 
-function nextCard(): void {
-  const e = cards.shift();
-  cardOpen = e !== undefined;
-  $('#card').hidden = !cardOpen;
-  if (!e) return;
+function noteContent(e: UiEvent): { kind: string; title: string; text: string; source: string } {
   const view = getView();
   if (e.type === 'milestoneReached') {
     const m = (view.milestones ?? []).find((x) => x.warming === e.warming);
-    $('#card-title').textContent = `+${e.warming} degrees C: ${m?.title ?? ''}`;
-    $('#card-text').textContent = m?.text ?? '';
-    $('#card-source').textContent = m ? `Source: ${m.source}` : '';
-  } else if (e.type === 'objectiveCompleted') {
-    const o = (view.objectives ?? []).find((x) => x.id === e.objective);
-    $('#card-title').textContent = `Goal done: +${e.reward} dollars`;
-    $('#card-text').textContent = `${o?.text ?? ''} ${o?.lesson ?? ''}`;
-    $('#card-source').textContent = '';
-  } else if (e.type === 'cardShown') {
-    const c = view.cards.find((x) => x.id === e.card);
-    $('#card-title').textContent = c?.title ?? '';
-    $('#card-text').textContent = c?.text ?? '';
-    $('#card-source').textContent = c ? `Source: ${c.source}` : '';
+    return {
+      kind: 'milestone',
+      title: `+${e.warming} degree${e.warming === 1 ? '' : 's'} C: ${m?.title ?? ''}`,
+      text: m?.text ?? '',
+      source: m?.source ?? '',
+    };
   }
+  if (e.type === 'objectiveCompleted') {
+    const o = (view.objectives ?? []).find((x) => x.id === e.objective);
+    return {
+      kind: 'goal',
+      title: `Goal done: +${e.reward} dollars`,
+      text: `${o?.text ?? ''}. ${o?.lesson ?? ''}`,
+      source: '',
+    };
+  }
+  if (e.type === 'cardShown') {
+    const c = view.cards.find((x) => x.id === e.card);
+    return { kind: 'science', title: c?.title ?? '', text: c?.text ?? '', source: c?.source ?? '' };
+  }
+  return { kind: '', title: '', text: '', source: '' };
 }
-$('#card-ok').addEventListener('click', nextCard);
+
+function addNote(e: UiEvent): void {
+  const { kind, title, text, source } = noteContent(e);
+  const item = document.createElement('li');
+  item.className = `note ${kind}`;
+  const head = document.createElement('div');
+  head.className = 'note-head';
+  head.textContent = `Year ${Math.floor(getView().elapsedYears)}`;
+  const heading = document.createElement('strong');
+  heading.textContent = title;
+  const body = document.createElement('p');
+  body.textContent = text;
+  item.append(head, heading, body);
+  if (source) {
+    const cite = document.createElement('p');
+    cite.className = 'dim note-source';
+    cite.textContent = `Source: ${source}`;
+    item.append(cite);
+  }
+  notesList.prepend(item);
+  while (notesList.children.length > MAX_NOTES) notesList.lastElementChild?.remove();
+  $('#notes-empty').hidden = true;
+  $('#feed').scrollTop = 0;
+}
 
 function renderDebrief(view: AnyView): void {
   const d = view.debrief;
@@ -432,11 +462,11 @@ function renderDebrief(view: AnyView): void {
     ${`<ul>${d.realWorld.map((r) => `<li>${r.text} <span class="dim">Source: ${r.source}</span></li>`).join('')}</ul>`}
     <h3>Where this game is simpler than reality</h3>${li(d.gameSimplifications)}
     <button id="again" class="primary">Play again</button></div>`;
-  box.hidden = false;
   $('#again').addEventListener('click', () => {
     const r = game.dispatch({ type: 'reset' });
     if (r.ok) handle(r.events);
     playing = true;
+    paintClock();
   });
 }
 
@@ -515,10 +545,8 @@ function showGameOver(): void {
   $('#gameover').hidden = false;
 }
 $('#gameover-again').addEventListener('click', () => {
-  const r = game.dispatch({ type: 'reset' });
-  if (r.ok) handle(r.events);
-  playing = true;
-  paintClock();
+  $('#gameover').hidden = true;
+  $('#debrief').hidden = false;
 });
 
 function render(view: AnyView): void {

@@ -6,6 +6,8 @@ import { concentrations } from './science';
 import { TICKS_PER_YEAR, type GameState } from './state';
 
 const SPM = 'IPCC AR6 WG1 Summary for Policymakers';
+const HEAT_STRESS =
+  'Sherwood and Huber (2010), An adaptability limit to climate change due to heat stress, PNAS 107, 9552-9555';
 
 export interface Milestone {
   readonly warming: number;
@@ -46,10 +48,22 @@ export const MILESTONES: readonly Milestone[] = [
     source: `${SPM}, B.1.1`,
   },
   {
-    warming: GAMEPLAY.endingWarming.value,
+    warming: 4,
     title: 'Four degrees warmer',
     text: 'Once in 10 years heat extremes now happen about 9.4 times as often and are about 5.1 degrees C hotter.',
     source: `${SPM}, Figure SPM.6`,
+  },
+  {
+    warming: 7,
+    title: 'Seven degrees warmer',
+    text: 'Heat and humidity together would start to pass the limit the human body can survive for long in some regions, raising the question of whether people could still live there.',
+    source: HEAT_STRESS,
+  },
+  {
+    warming: 11,
+    title: 'Eleven degrees warmer',
+    text: 'With 11 to 12 degrees C of warming, the regions too hot and humid for the human body would cover the places where most people live today.',
+    source: HEAT_STRESS,
   },
 ];
 
@@ -123,6 +137,7 @@ export function createDebrief(state: GameState): Debrief | null {
     gameSimplifications: [
       'The game starts from 1750 conditions and how fast years pass is a game choice.',
       'Pollution particles (aerosols) that hide some real world warming are left out.',
+      'Warming far above 5 degrees C goes past what the IPCC assesses for this century, and the simple climate model is less reliable there.',
       'Country values come from large IPCC regions, not from each country separately.',
     ],
   };

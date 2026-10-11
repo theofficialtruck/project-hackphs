@@ -85,11 +85,11 @@ export const GAMEPLAY = {
     kind: 'gameplay',
   },
   endingWarming: {
-    value: 4,
+    value: 20,
     unit: 'degrees C',
     description: 'The game ends when global warming reaches this level.',
     source:
-      'Game design choice: close to the middle of the IPCC very high emissions range for 2081-2100 (3.3 to 5.7 degrees C).',
+      'Game design choice: far past the 11 to 12 degrees C at which heat stress would make the places where most people live too hot for the human body (Sherwood and Huber, 2010, PNAS 107, 9552).',
     kind: 'gameplay',
   },
   cfcPerLevel: {
