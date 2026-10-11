@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Ozone Inc.</title>
+  </head>
+  <body>
+    <!-- Temporary globe page. This page belongs to the final UI and will be replaced by setty -->
+    <div id="globe"></div>
+    <aside id="panel">
+      <h1>Ozone Inc.</h1>
+      <p id="status"></p>
+      <p class="controls">
+        <button id="play">Play</button>
+        <button id="step">Step 1 year</button>
+        <select id="speed"></select>
+        <button id="reset">Reset</button>
+      </p>
+      <p id="money"></p>
+      <div id="factors"></div>
+      <pre id="preview">Hover over a + button to preview an upgrade.</pre>
+      <pre id="news"></pre>
+      <p><a href="/dev.html">Numbers page</a></p>
+    </aside>
+    <aside id="goals">
+      <h2>Goal: reach +4 degrees C</h2>
+      <div id="milestones"></div>
+      <h2>Side goals</h2>
+      <div id="objectives"></div>
+    </aside>
+    <aside id="debrief" hidden>
+      <h2>Earth reached +4 degrees C</h2>
+      <pre id="debrief-text"></pre>
+      <button id="debrief-reset">Play again</button>
+    </aside>
+    <aside id="country" hidden>
+      <h2 id="country-name"></h2>
+      <p id="country-text"></p>
+    </aside>
+    <script type="module" src="/src/dev-ui/globe-page.ts"></script>
+  </body>
+</html>
