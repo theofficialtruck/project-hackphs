@@ -77,3 +77,9 @@ scripts/       Data build scripts
   averages, licensed CC BY 4.0, <https://github.com/IPCC-WG1/Atlas>. Reference regions: Iturbide et
   al. (2020).
 - Scientific sources are listed next to each value in `src/core/science/constants.ts`.
+
+## AI USE
+
+- AI was used AI for to fix many merge conflicts
+- AI was used for some styling
+- AI was used for all audio (Elevenlabs)
