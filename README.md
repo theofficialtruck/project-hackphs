@@ -1,3 +1,5 @@
+npm run format
+
 # Ozone Inc.
 
 Ozone Inc. is an educational science game for high school students (grades 9 to 10). The player controls Earth's
@@ -21,7 +23,7 @@ The engine (simulation, game state, mechanics) is plain TypeScript and runs enti
 - Audio made with Elevenlabs
 - Three.js - 3D graphics rendering
 - Globe.gl - 3D mapping
-- World-Atlas - geographic data on countriy boundaries
+- World-Atlas - geographic data on country boundaries
 - Topojson-client - formatting
 - d3-geo - transforms the spherical globe into a 2D circle
   
